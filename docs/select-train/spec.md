@@ -10,7 +10,8 @@ Date: 2026-09-25
 button. Tapping it, or Enter/Space with it focused, picks that train. The
 picked row is marked with a bar on its left edge and `aria-pressed="true"`.
 The yellow "next" highlight stays on the actual next train. A picked train
-that has left stays in the table even when earlier trains are collapsed.
+that has left stays in the table even when earlier trains are collapsed, and
+"Show N earlier trains" doesn't count it.
 
 **R2. The card shows the picked train.** It has the same layout as the next
 train card: itinerary (home, optional stop with its Stop/Skips tag, work),
@@ -103,8 +104,16 @@ All changes are in `index.html`.
   focused element, `render()` focuses its replacement (same `id` or train
   number) without scrolling.
 - **Row position.** The row click handler notes the tapped button's position,
-  redraws, and scrolls by the difference. `overflow-anchor: none` keeps the
-  browser from adjusting as well.
+  redraws, and scrolls by the difference. It holds off the browser's own scroll
+  anchoring until the next frame, so the browser doesn't adjust as well.
+- **Taps act on the current timetable.** The page redraws every 15 seconds, so
+  the table can be a little behind. A tap first catches up with the clock,
+  then decides whether it picks or unpicks. The pick keeps the day of the
+  table that was tapped, so a tap on a table that has since moved on to the
+  next day is dropped.
+- **Focus fallback.** If the focused control is gone after a redraw (the back
+  button, or an unpicked earlier train that's now hidden), focus moves to the
+  card.
 - **Floating button.** One `<button class="to-top" id="to-top" hidden>` after
   the footer. Its visibility is worked out on `scroll` (passive), on `resize`,
   and after each `render()`: shown when the card's bottom edge is at or

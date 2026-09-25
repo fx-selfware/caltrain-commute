@@ -18,7 +18,8 @@ After the last train of the night on your route, it shows the next day's trains.
 1. Open the page and choose your home and work stations. You can also pick a stop between them.
 2. **Work** and **Home** switch the direction. The page opens on **Work**; add `#home` to the address to open on **Home** instead.
 3. With a stop set, the timetable has a column for home, the stop and work, in travel order, with — where a train doesn't stop. The next-train card shows the time at the stop too.
-4. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
+4. Tap a train in the timetable to see it on the card instead of the next train, with its countdown (or how long ago it left), its stop, and the trains after it. Tap it again, tap the next train, or use **Back to next train** to go back. Switching direction or schedule also goes back. When you've scrolled down past the card, the round arrow button at the bottom right takes you back up.
+5. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
 
 ## Running locally
 

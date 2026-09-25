@@ -25,9 +25,24 @@ During the build the owner asked for a test suite, with tests backfilled for the
 - Playwright runs `index.html` in Chromium (Pixel 7) and WebKit (iPhone 13).
 - A fixture stands in for caltrain.com, and the clock is paused at a set Pacific time.
 
-This feature is then built test first. `tests/pick-train.spec.js` covers every requirement and amendment, and it fails before the code exists. `npm test` replaces most of the manual browser checks under Proof below. Screenshots are still used for layout.
+This feature is then built test first. Its tests cover every requirement and amendment, and they fail before the code exists. They're now `tests/features/pick-train.feature`, tagged with the requirement each scenario checks. `npm test` replaces most of the manual browser checks under Proof below. Screenshots are still used for layout.
 
 One consequence for step 7: the floating button's visibility is updated synchronously at the end of `render()`, not in `requestAnimationFrame`. The fake clock also holds back animation frames, and doing it synchronously is simpler anyway.
+
+Later in the build the owner asked for the tests in BDD form. They were rewritten as Gherkin scenarios run by playwright-bdd, again as a separate commit. It was checked against the code on `main` before this feature landed.
+
+## Amendment after code review
+
+A fresh-context `/code-review` of the finished diff found the following. Each fix came with a failing scenario first:
+
+- **A tap could act on a table up to 15 seconds old.** Just after the last train, tapping a row could pick tomorrow's train with the same number. Just after a departure, tapping the still-highlighted row showed a different train. Now a tap first catches the page up with the clock. The pick keeps the day of the table that was tapped, so a pick made on a table that has since moved on to the next day is dropped.
+- **Focus could fall to the page.** This happened when unpicking a past train hid its row, or when a redraw removed the focused back button. Focus now falls back to the card.
+- **"Show N earlier trains" counted a picked earlier train that was already showing.**
+- **Smaller fixes:**
+  - Scroll anchoring is held off only around a tap, not for the whole page.
+  - The floating button's shadow is a color token.
+  - The "Weekday/Weekend schedule" label is built in one place.
+- **Not changed: the floating button measures the card on every scroll.** Layout is already clean while scrolling, so this doesn't force a reflow. An IntersectionObserver would need a margin that follows the sticky controls' height.
 
 ## Spec amendments (from the stress test)
 
