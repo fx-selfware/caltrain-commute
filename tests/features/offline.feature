@@ -2,14 +2,13 @@
 Feature: Working offline
   The app keeps an offline copy of itself, through its service worker, and the
   last timetable it loaded. Other pages on the same site are left alone.
+  Runs in Chromium only; see the webkit project in playwright.config.js.
 
   Background:
     Given it is Wednesday 7:10am
     And my commute is from "San Francisco" to "Mountain View"
     And the app is ready to work offline
 
-  # Playwright's WebKit can't load pages while emulating offline.
-  @chromium-only
   Scenario: The app opens offline with the saved timetable
     When I go offline
     And I open the app again

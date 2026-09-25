@@ -23,11 +23,11 @@ The tests are BDD scenarios in Gherkin, run by Playwright through [playwright-bd
 - `tests/features/*.feature` holds one feature per area, in the viewer's words. Each Given sets up the time, the stations or caltrain.com; each When is a tap, a key or time passing; each Then is something on screen.
 - `tests/steps/` holds the step definitions, grouped by setup, actions, the card, the timetable and the rest of the page. Reuse an existing step before writing a new one.
 - `tests/support/app.js` drives the app. It opens it at a Pacific time with the clock paused ("it is Wednesday 7:10am" is September 23, 2026).
-- Tests never contact caltrain.com. `tests/fixtures/timetable.html` stands in for it, with the same markup the page parses; the comment at its top lists every train.
+- Tests never contact caltrain.com. `tests/fixtures/timetable.html` stands in for it, with the same markup the page parses; the comment at its top lists every train. A guard in `tests/steps/fixtures.js` fails any scenario that gets a response from the real site.
 - `npm test` generates Playwright tests into `.features-gen/` (ignored by git) first.
 - Steps check what the viewer sees (text, `aria-pressed`, classes on rows), not internal state.
-- Scenarios run with the service worker blocked, so no cached copy leaks between steps. Tag a scenario `@service-worker` to run it with the worker, as `tests/features/offline.feature` does.
-- `@chromium-only` skips a scenario in WebKit, for things Playwright's WebKit can't do (such as loading pages while offline). Say why in a comment above the tag.
+- Scenarios run with the service worker blocked, so no cached copy leaks between steps. Tag a scenario `@service-worker` to run it with the worker, as `tests/features/offline.feature` does. These run in Chromium only: with a worker in control, Playwright's WebKit sometimes lets requests past the fake caltrain.com.
+- `@chromium-only` skips a scenario in WebKit, for other things Playwright's WebKit can't do. Say why in a comment above the tag.
 
 ## How we work
 

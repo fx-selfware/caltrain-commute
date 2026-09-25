@@ -28,8 +28,10 @@ module.exports = defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Pixel 7"] } },
-    // Scenarios tagged @chromium-only need something Playwright's WebKit can't do.
-    { name: "webkit", use: { ...devices["iPhone 13"] }, grepInvert: /@chromium-only/ },
+    // WebKit skips @chromium-only scenarios, which need something Playwright's WebKit
+    // can't do, and @service-worker ones: with a service worker in control, its requests
+    // sometimes get past the fake caltrain.com to the real site.
+    { name: "webkit", use: { ...devices["iPhone 13"] }, grepInvert: /@chromium-only|@service-worker/ },
   ],
   webServer: {
     command: `python3 -m http.server ${PORT}`,
