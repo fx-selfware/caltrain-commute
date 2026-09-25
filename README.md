@@ -18,7 +18,8 @@ After the last train of the night on your route, it shows the next day's trains.
 1. Open the page and choose your home and work stations. You can also pick a stop between them.
 2. **Work** and **Home** switch the direction. The page opens on **Work**; add `#home` to the address to open on **Home** instead.
 3. With a stop set, the timetable has a column for home, the stop and work, in travel order, with — where a train doesn't stop. The next-train card shows the time at the stop too.
-4. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
+4. Tap a train in the timetable to see it on the card instead of the next train, with its countdown (or how long ago it left), its stop, and the trains after it. Tap it again, tap the next train, or use **Back to next train** to go back. Switching direction or schedule also goes back. When you've scrolled down past the card, the round arrow button at the bottom right takes you back up.
+5. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
 
 ## Running locally
 
@@ -30,6 +31,27 @@ Then open http://localhost:8765. The service worker only runs on `localhost` or 
 
 After you change a file, reload twice: the service worker serves the cached version first and picks up the new one in the background.
 
+## Tests
+
+```sh
+npm install
+npx playwright install chromium webkit   # first time only
+npm test
+```
+
+The tests are scenarios written in plain language (Gherkin), one file per feature in `tests/features/`, for example:
+
+```gherkin
+Scenario: The card shows the next train, its countdown and the two after it
+  Given it is Wednesday 7:10am
+  And my commute is from "San Francisco" to "Mountain View"
+  When I open the app
+  Then the card is headed "Next train"
+  And the countdown says "in 20 min"
+```
+
+[Playwright](https://playwright.dev) runs them, through [playwright-bdd](https://vitalets.github.io/playwright-bdd/), against `index.html` in a phone-sized Chromium and WebKit (as on an iPhone). The steps are defined in `tests/steps/`. The tests don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each scenario sets the clock to a fixed Pacific time. The app itself still has no dependencies; `package.json` is only for the tests.
+
 ## Files
 
 | File | Purpose |
@@ -40,6 +62,9 @@ After you change a file, reload twice: the service worker serves the cached vers
 | `icon.svg` | Icon source: a train front on a platform-edge warning strip |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons rendered from `icon.svg` |
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
+| `tests/`, `playwright.config.js`, `package.json` | Test scenarios, their step definitions, and a stand-in for caltrain.com's timetable |
+| `CLAUDE.md` | Commands and conventions for coding agents |
+| `docs/` | Intent, spec and plan for each feature, written before building it |
 
 ## Disclaimer
 

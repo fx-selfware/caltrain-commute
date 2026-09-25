@@ -1,0 +1,12 @@
+{
+  "name": "caltrain-commute",
+  "private": true,
+  "description": "Tests for the Caltrain Commute page. The app itself has no build step or dependencies.",
+  "scripts": {
+    "test": "bddgen && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "playwright-bdd": "^9.2.1"
+  }
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- A small stand-in for caltrain.com's route explorer tab, with the same markup the
+     page reads: the origin <select> for station ids, and one table.caltrain_schedule per
+     direction with a trip-header cell per trip and a row per station in travel order.
+     "--" means the train doesn't stop there. Train numbers follow Caltrain: odd
+     northbound, even southbound.
+
+     Southbound (San Francisco -> Gilroy)
+       102 Local    weekday  6:00am SF ... 6:55am Mountain View
+       104 Local    weekday  7:00am SF ... 7:55am
+       502 Express  weekday  7:30am SF, skips Palo Alto ... 8:05am
+       402 Limited  weekday  8:00am SF ... 8:44am
+       106 Local    weekday  9:00am SF ... 9:55am
+       108 Local    weekday 11:50pm SF ... 12:45am (last train, after midnight)
+       602 Local    weekend  8:00am SF ... 8:58am
+       604 Local    weekend 10:00am SF ... 10:58am
+     Northbound (Gilroy -> San Francisco)
+       801 S.County weekday  5:00am Gilroy -> 5:40am San Jose only
+       101 Local    weekday  4:50pm Mountain View ... 5:45pm SF
+       501 Express  weekday  5:30pm MV, skips Palo Alto ... 6:05pm
+       103 Local    weekday  6:50pm MV ... 7:45pm
+       105 Local    weekday 12:15am MV ... 1:10am (last train, after midnight)
+       601 Local    weekend  5:20pm MV ... 6:15pm
+       603 Local    weekend  7:20pm MV ... 8:15pm -->
+<html>
+<body>
+<select name="filter_origin" data-location="origin"><option value="">- origin -</option><option value="7001">San Francisco</option><option value="7006">Millbrae</option><option value="7014">Palo Alto</option><option value="7017">Mountain View</option><option value="7021">San Jose Diridon</option><option value="7031">Gilroy</option></select>
+
+<table class="caltrain_schedule table table-striped" data-direction="northbound">
+<tr><td class="zone"></td><td class="station"></td>
+<td class="schedule-trip-header" data-trip-id="801" data-route-id="South County" data-service-type="weekday">801</td>
+<td class="schedule-trip-header" data-trip-id="101" data-route-id="Local Weekday" data-service-type="weekday">101</td>
+<td class="schedule-trip-header" data-trip-id="501" data-route-id="Express" data-service-type="weekday">501</td>
+<td class="schedule-trip-header" data-trip-id="103" data-route-id="Local Weekday" data-service-type="weekday">103</td>
+<td class="schedule-trip-header" data-trip-id="105" data-route-id="Local Weekday" data-service-type="weekday">105</td>
+<td class="schedule-trip-header" data-trip-id="601" data-route-id="Local Weekend" data-service-type="weekend">601</td>
+<td class="schedule-trip-header" data-trip-id="603" data-route-id="Local Weekend" data-service-type="weekend">603</td></tr>
+<tr data-stop-id="70321"><td class="zone">6</td><td class="station"><a href="/station/gilroy">Gilroy</a></td><td class="timepoint">5:00am</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td></tr>
+<tr data-stop-id="70261"><td class="zone">4</td><td class="station"><a href="/station/sanjosediridon">San Jose Diridon</a></td><td class="timepoint">5:40am</td><td class="timepoint">4:30pm</td><td class="timepoint">5:15pm</td><td class="timepoint">6:30pm</td><td class="timepoint">11:55pm</td><td class="timepoint">5:00pm</td><td class="timepoint">7:00pm</td></tr>
+<tr data-stop-id="70211"><td class="zone">3</td><td class="station"><a href="/station/mountainview">Mountain View</a></td><td class="timepoint">--</td><td class="timepoint">4:50pm</td><td class="timepoint">5:30pm</td><td class="timepoint">6:50pm</td><td class="timepoint">12:15am</td><td class="timepoint">5:20pm</td><td class="timepoint">7:20pm</td></tr>
+<tr data-stop-id="70171"><td class="zone">3</td><td class="station"><a href="/station/paloalto">Palo Alto</a></td><td class="timepoint">--</td><td class="timepoint">5:00pm</td><td class="timepoint">--</td><td class="timepoint">7:00pm</td><td class="timepoint">12:25am</td><td class="timepoint">5:30pm</td><td class="timepoint">7:30pm</td></tr>
+<tr data-stop-id="70061"><td class="zone">2</td><td class="station"><a href="/station/millbrae">Millbrae</a></td><td class="timepoint">--</td><td class="timepoint">5:25pm</td><td class="timepoint">5:50pm</td><td class="timepoint">7:25pm</td><td class="timepoint">12:50am</td><td class="timepoint">5:55pm</td><td class="timepoint">7:55pm</td></tr>
+<tr data-stop-id="70011"><td class="zone">1</td><td class="station"><a href="/station/sanfrancisco">San Francisco</a></td><td class="timepoint">--</td><td class="timepoint">5:45pm</td><td class="timepoint">6:05pm</td><td class="timepoint">7:45pm</td><td class="timepoint">1:10am</td><td class="timepoint">6:15pm</td><td class="timepoint">8:15pm</td></tr>
+</table>
+
+<table class="caltrain_schedule table table-striped" data-direction="southbound">
+<tr><td class="zone"></td><td class="station"></td>
+<td class="schedule-trip-header" data-trip-id="102" data-route-id="Local Weekday" data-service-type="weekday">102</td>
+<td class="schedule-trip-header" data-trip-id="104" data-route-id="Local Weekday" data-service-type="weekday">104</td>
+<td class="schedule-trip-header" data-trip-id="502" data-route-id="Express" data-service-type="weekday">502</td>
+<td class="schedule-trip-header" data-trip-id="402" data-route-id="Limited" data-service-type="weekday">402</td>
+<td class="schedule-trip-header" data-trip-id="106" data-route-id="Local Weekday" data-service-type="weekday">106</td>
+<td class="schedule-trip-header" data-trip-id="108" data-route-id="Local Weekday" data-service-type="weekday">108</td>
+<td class="schedule-trip-header" data-trip-id="602" data-route-id="Local Weekend" data-service-type="weekend">602</td>
+<td class="schedule-trip-header" data-trip-id="604" data-route-id="Local Weekend" data-service-type="weekend">604</td></tr>
+<tr data-stop-id="70012"><td class="zone">1</td><td class="station"><a href="/station/sanfrancisco">San Francisco</a></td><td class="timepoint">6:00am</td><td class="timepoint">7:00am</td><td class="timepoint">7:30am</td><td class="timepoint">8:00am</td><td class="timepoint">9:00am</td><td class="timepoint">11:50pm</td><td class="timepoint">8:00am</td><td class="timepoint">10:00am</td></tr>
+<tr data-stop-id="70062"><td class="zone">2</td><td class="station"><a href="/station/millbrae">Millbrae</a></td><td class="timepoint">6:20am</td><td class="timepoint">7:20am</td><td class="timepoint">7:45am</td><td class="timepoint">8:15am</td><td class="timepoint">9:20am</td><td class="timepoint">12:10am</td><td class="timepoint">8:20am</td><td class="timepoint">10:20am</td></tr>
+<tr data-stop-id="70172"><td class="zone">3</td><td class="station"><a href="/station/paloalto">Palo Alto</a></td><td class="timepoint">6:45am</td><td class="timepoint">7:45am</td><td class="timepoint">--</td><td class="timepoint">8:35am</td><td class="timepoint">9:45am</td><td class="timepoint">12:35am</td><td class="timepoint">8:45am</td><td class="timepoint">10:45am</td></tr>
+<tr data-stop-id="70212"><td class="zone">3</td><td class="station"><a href="/station/mountainview">Mountain View</a></td><td class="timepoint">6:55am</td><td class="timepoint">7:55am</td><td class="timepoint">8:05am</td><td class="timepoint">8:44am</td><td class="timepoint">9:55am</td><td class="timepoint">12:45am</td><td class="timepoint">8:58am</td><td class="timepoint">10:58am</td></tr>
+<tr data-stop-id="70262"><td class="zone">4</td><td class="station"><a href="/station/sanjosediridon">San Jose Diridon</a></td><td class="timepoint">7:15am</td><td class="timepoint">8:15am</td><td class="timepoint">8:20am</td><td class="timepoint">9:00am</td><td class="timepoint">10:15am</td><td class="timepoint">1:05am</td><td class="timepoint">9:20am</td><td class="timepoint">11:20am</td></tr>
+<tr data-stop-id="70322"><td class="zone">6</td><td class="station"><a href="/station/gilroy">Gilroy</a></td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td><td class="timepoint">--</td></tr>
+</table>
+</body>
+</html>

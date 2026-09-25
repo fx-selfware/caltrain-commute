@@ -44,6 +44,7 @@
   --south-bg: #FAE4A7;
   --south-ink: #3A2E00;
   --focus: #1F6FEB;
+  --float-shadow: 0 2px 8px rgba(0, 0, 0, .25);
   --font: "Overpass", "Helvetica Neue", Arial, system-ui, sans-serif;
   color-scheme: light;
 }
@@ -66,6 +67,7 @@
     --local-bg: #E6EBEE;
     --local-ink: #0D1215;
     --focus: #6EA8FF;
+    --float-shadow: 0 2px 12px rgba(0, 0, 0, .7);
   }
 }
 
@@ -86,7 +88,8 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding-inline: 16px;
-  padding-block: 0 32px;
+  /* Room at the bottom so the floating button doesn't cover the footer. */
+  padding-block: 0 88px;
   display: grid;
   gap: 16px;
 }
@@ -162,6 +165,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   color: var(--sign-muted);
 }
 .count { font-size: 26px; font-weight: 800; color: var(--signal); line-height: 1; }
+.count.gone { color: var(--sign-muted); }
 .itin .t small, .rows small { font-size: .45em; font-weight: 600; margin-left: 2px; letter-spacing: .02em; }
 /* Itinerary: the trip's stations top to bottom on one line. Rows share a height so the
    line can run from the first mark's center to the last one's. */
@@ -211,6 +215,16 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .trip-train { display: flex; align-items: center; gap: 8px; font-size: 15px; }
 .trip-train b { font-weight: 800; }
 .trip-stats { font-size: 13px; color: var(--sign-muted); }
+.sign .back {
+  justify-self: start;
+  border: 1px solid var(--sign-muted);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sign-ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 12px 5px;
+}
 .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--sign-muted); }
 .meta b { color: var(--sign-ink); font-weight: 600; }
 .after {
@@ -257,7 +271,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .list { --cols: 4.9rem 4.3rem 1fr auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
 /* Two work stations: one time column per station, in travel order. */
 .list.three { --cols: 4.4rem 4.4rem 4.4rem 1fr; }
-.list-head, .rows li {
+.list-head, .rows button {
   display: grid;
   grid-template-columns: var(--cols);
   align-items: center;
@@ -278,8 +292,19 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .list-head span:last-child { text-align: right; }
 .list-head .on { color: var(--ink); }
 .rows { list-style: none; margin: 0; padding: 0; }
-.rows li { padding-block: 11px 9px; border-bottom: 1px solid var(--line); }
+.rows li { border-bottom: 1px solid var(--line); }
 .rows li:last-child { border-bottom: 0; }
+/* Each row is a button that shows its train on the card. */
+.rows button {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  padding-block: 11px 9px;
+}
+.rows button:focus-visible { outline-offset: -2px; }
+@media (hover: hover) { .rows button:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); } }
 .rows .dep { font-size: 20px; font-weight: 800; }
 .rows .arr { font-size: 17px; font-weight: 600; color: var(--muted); }
 .rows .ride { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -293,6 +318,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .rows li.past { opacity: .5; }
 .rows li.next { background: var(--next-bg); }
 .rows li.next .ride { color: var(--next-ink); font-weight: 600; }
+.rows li.picked { opacity: 1; box-shadow: inset 4px 0 0 var(--ink); }
 .day-note { padding: 11px 14px 9px; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
 .more {
   width: 100%;
@@ -389,12 +415,30 @@ footer { font-size: 12px; color: var(--muted); line-height: 1.5; }
 footer a { color: var(--ink); }
 footer .warn { color: var(--warn); font-weight: 600; }
 
+/* Floating button back to the card, at the right edge of the page column. */
+.to-top {
+  position: fixed;
+  right: max(16px, calc(50% - 240px + 16px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--seg-on);
+  color: var(--seg-on-ink);
+  box-shadow: var(--float-shadow);
+}
+
 @media (max-width: 380px) {
   .itin li { grid-template-columns: 18px 6rem 1fr auto; column-gap: 10px; }
   .itin .t { font-size: 26px; }
   .list { --cols: 4.6rem 4rem 1fr auto; }
   .list.three { --cols: 4.2rem 4.2rem 4.2rem 1fr; }
-  .list-head, .rows li { padding-inline: 12px; gap: 6px; }
+  .list-head, .rows button { padding-inline: 12px; gap: 6px; }
 }
 @media (max-width: 350px) {
   .itin li { grid-template-columns: 18px 5.2rem 1fr auto; }
@@ -461,7 +505,7 @@ footer .warn { color: var(--warn); font-weight: 600; }
     </div>
   </form>
 
-  <section class="sign" id="sign" aria-label="Next train"></section>
+  <section class="sign" id="sign" aria-label="Next train" tabindex="-1"></section>
 
   <section class="list" id="list" aria-label="Timetable" hidden>
     <div class="list-head" id="listHead"></div>
@@ -470,6 +514,7 @@ footer .warn { color: var(--warn); font-weight: 600; }
   </section>
 
   <footer id="foot"></footer>
+  <button class="to-top" id="to-top" type="button" aria-label="Back to top" title="Back to top" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
 </div>
 
 <script>
@@ -610,11 +655,12 @@ function fmt(min) {
     : `${h % 12 || 12}:${m}<small>${h < 12 ? "am" : "pm"}</small>`;
 }
 function fmtPlain(min) { return fmt(min).replace(/<[^>]+>/g, ""); }
+// Time to a departure, or since it once the train has left.
 function until(sec) {
-  if (sec < 60) return "departing now";
-  const mins = Math.floor(sec / 60);
-  if (mins < 60) return `in ${mins} min`;
-  return `in ${Math.floor(mins / 60)} h ${mins % 60} min`;
+  if (sec > -60 && sec < 60) return "departing now";
+  const mins = Math.floor(Math.abs(sec) / 60);
+  const span = mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)} h ${mins % 60} min`;
+  return sec < 0 ? `left ${span} ago` : `in ${span}`;
 }
 function savedAt(ms) {
   const d = new Date(ms);
@@ -641,6 +687,9 @@ const state = {
   dayPinned: false,
   showPast: false,
   editing: false,
+  // A train picked in the timetable: { n, dow }, its number and the service day
+  // whose trains were showing, so it doesn't carry over to the next day's.
+  pick: null,
 };
 let setupFilled = false;
 
@@ -649,6 +698,8 @@ const ready = () => !!(DATA && prefs && !prefs.works && known(prefs.home) && kno
   (!prefs.stop || between(prefs.home, prefs.work, prefs.stop)));
 const route = () => state.dir === "work" ? [prefs.home, prefs.work] : [prefs.work, prefs.home];
 let upcomingDayType = dayType(now0.dow);
+// The service day and next train the timetable on screen was drawn with.
+let shown = { dow: null, next: null };
 
 // The service day whose trains come next. Once the day's last train has left (say
 // 12:30am, before the 3am cutoff), that's the following day, whose times then count
@@ -764,7 +815,33 @@ function renderFooter() {
   $("foot").innerHTML = `${text}${link} Not affiliated with Caltrain.`;
 }
 
+// Rewrite an element only when its HTML changes, so the 15-second redraw leaves
+// focus and taps in progress alone.
+const drawn = new WeakMap();
+function put(el, html) {
+  if (drawn.get(el) === html) return;
+  drawn.set(el, html);
+  el.innerHTML = html;
+}
+const rowButton = n => [...$("rows").querySelectorAll("button")].find(b => b.dataset.n === n);
+
+// If drawing replaced the focused button, focus its replacement, or the card if
+// there isn't one.
 function render() {
+  const had = document.activeElement;
+  draw();
+  if (had && !had.isConnected) ((had.id ? $(had.id) : rowButton(had.dataset.n)) ?? $("sign")).focus({ preventScroll: true });
+  updateTop();
+}
+
+// The floating button shows while the card is scrolled up behind the controls.
+function updateTop() {
+  const controls = $("controls");
+  $("to-top").hidden = $("list").hidden ||
+    $("sign").getBoundingClientRect().bottom > (controls.hidden ? 0 : controls.getBoundingClientRect().bottom);
+}
+
+function draw() {
   const now = serviceNow();
   migratePrefs();
   const isReady = ready();
@@ -772,7 +849,7 @@ function render() {
   const today = upcomingDayType = dayType(svc.dow);
   // Follow the day whose trains come next (e.g. into Saturday after Friday's last
   // train) unless the viewer picked another one.
-  if (!state.dayPinned && state.day !== today) { state.day = today; state.showPast = false; renderControls(); }
+  if (!state.dayPinned && state.day !== today) { state.day = today; state.showPast = false; state.pick = null; renderControls(); }
   const showSetup = !!DATA && (state.editing || !isReady);
   if (showSetup && !setupFilled) fillSetup();
   $("setup").hidden = !showSetup;
@@ -785,13 +862,13 @@ function render() {
 
   const sign = $("sign");
   if (!DATA) {
-    sign.innerHTML = status.state === "failed"
+    put(sign, status.state === "failed"
       ? `<div class="domes"></div><div class="sign-body">
            <div class="empty">Couldn't load the timetable</div>
            <div class="meta">${esc(status.msg)}.</div>
            <button class="retry" id="retry" type="button">Try again</button>
          </div>`
-      : `<div class="domes"></div><div class="sign-body"><div class="empty">Loading timetable…</div></div>`;
+      : `<div class="domes"></div><div class="sign-body"><div class="empty">Loading timetable…</div></div>`);
     const retry = $("retry");
     if (retry) retry.onclick = refresh;
     return;
@@ -799,26 +876,27 @@ function render() {
 
   const [from, to] = route();
   const routeText = `${esc(from)} → ${esc(to)}`;
+  const scheduleName = `${state.day === "weekend" ? "Weekend" : "Weekday"} schedule`;
   const isToday = state.day === today;
   const cols = columns(from, to);
   const list = trips(from, to, state.day, cols || []);
   const nextIdx = isToday ? list.findIndex(t => t.dep + svc.offset >= now.min) : -1;
-  const wait = t => until((t.dep + svc.offset) * 60 - now.sec);
+  shown = { dow: svc.dow, next: list[nextIdx]?.n };
+  if (state.pick && (state.pick.dow !== svc.dow || !list.some(t => t.n === state.pick.n))) state.pick = null;
+  const pickIdx = state.pick ? list.findIndex(t => t.n === state.pick.n) : -1;
+  const secs = t => (t.dep + svc.offset) * 60 - now.sec;
+  const daySuffix = svc.offset ? ` · ${DAY_NAMES[svc.dow]}` : "";
 
-  if (!list.length) {
-    sign.innerHTML = `
+  // One train on the card, with the two after it. On the other day's schedule the
+  // trains aren't today's, so there's no countdown.
+  const trainCard = (i, eyebrow, back) => {
+    const t = list[i], later = list.slice(i + 1, i + 3);
+    const then = l => `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])}${isToday ? ` · ${until(secs(l))}` : ""}</span>`;
+    return `
       <div class="domes"></div>
       <div class="sign-body">
-        <span class="eyebrow">${routeText}</span>
-        <div class="empty">No ${state.day} trains stop at both stations</div>
-      </div>`;
-  } else if (isToday && nextIdx >= 0) {
-    const t = list[nextIdx];
-    const later = list.slice(nextIdx + 1, nextIdx + 3);
-    sign.innerHTML = `
-      <div class="domes"></div>
-      <div class="sign-body">
-        <div class="sign-top"><span class="eyebrow">Next train${svc.offset ? ` · ${DAY_NAMES[svc.dow]}` : ""}</span><span class="count">${wait(t)}</span></div>
+        <div class="sign-top"><span class="eyebrow">${eyebrow}</span>${isToday
+          ? `<span class="count${secs(t) <= -60 ? " gone" : ""}">${until(secs(t))}</span>` : ""}</div>
         <ol class="itin" aria-label="${routeText}">
           ${itinRow(t.dep, from)}
           ${prefs.stop ? itinRow(t.at[prefs.stop], prefs.stop, true) : ""}
@@ -828,35 +906,57 @@ function render() {
           <div class="trip-train">${chip(t.k)}<span>Train <b>${esc(t.n)}</b></span></div>
           <div class="trip-stats">${t.arr - t.dep} min ride · ${stopsLabel(t.stops)}</div>
         </div>
+        ${back ? `<button class="back" id="back" type="button">${back}</button>` : ""}
       </div>
-      ${later.length ? `<div class="after"><span>Then</span>${later.map(l =>
-        `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])} · ${wait(l)}</span>`).join("")}</div>` : ""}`;
+      ${later.length ? `<div class="after"><span>Then</span>${later.map(then).join("")}</div>` : ""}`;
+  };
+
+  // A picked train shows unless it's the next train anyway.
+  const selected = pickIdx >= 0 && pickIdx !== nextIdx;
+  sign.setAttribute("aria-label", selected ? "Selected train" : "Next train");
+  if (!list.length) {
+    put(sign, `
+      <div class="domes"></div>
+      <div class="sign-body">
+        <span class="eyebrow">${routeText}</span>
+        <div class="empty">No ${state.day} trains stop at both stations</div>
+      </div>`);
+  } else if (selected) {
+    put(sign, isToday
+      ? trainCard(pickIdx, `Selected train${daySuffix}`, "Back to next train")
+      : trainCard(pickIdx, scheduleName, "Back to summary"));
+  } else if (isToday && nextIdx >= 0) {
+    put(sign, trainCard(nextIdx, `Next train${daySuffix}`));
   } else if (isToday) {
     const tomorrow = (svc.dow + 1) % 7;
     const first = trips(from, to, dayType(tomorrow))[0];
-    sign.innerHTML = `
+    put(sign, `
       <div class="domes"></div>
       <div class="sign-body">
         <span class="eyebrow">${routeText}</span>
         <div class="empty">No more trains tonight</div>
         ${first ? `<div class="meta">First train ${DAY_NAMES[tomorrow]}: <b>${fmtPlain(first.dep)}</b> ${chip(first.k)} <span>Train ${esc(first.n)}</span></div>` : ""}
-      </div>`;
+      </div>`);
   } else {
     const first = list[0], last = list[list.length - 1];
-    sign.innerHTML = `
+    put(sign, `
       <div class="domes"></div>
       <div class="sign-body">
-        <span class="eyebrow">${state.day === "weekend" ? "Weekend" : "Weekday"} schedule · ${routeText}</span>
+        <span class="eyebrow">${scheduleName} · ${routeText}</span>
         <div class="meta">${list.length} trains · first <b>${fmtPlain(first.dep)}</b> · last <b>${fmtPlain(last.dep)}</b></div>
-      </div>`;
+      </div>`);
   }
+  const back = $("back");
+  if (back) back.onclick = () => { state.pick = null; render(); sign.focus({ preventScroll: true }); };
 
   const pastCount = isToday ? (nextIdx < 0 ? list.length : nextIdx) : 0;
-  $("listNote").innerHTML = isToday && svc.offset
+  // A picked earlier train stays in the table, so it isn't one the button hides.
+  const hideable = pastCount - (pickIdx >= 0 && pickIdx < pastCount ? 1 : 0);
+  put($("listNote"), isToday && svc.offset
     ? `<div class="day-note">${DAY_NAMES[svc.dow]}'s trains</div>`
-    : pastCount
-    ? `<button class="more" id="toggle-past" type="button" aria-expanded="${state.showPast}">${state.showPast ? "Hide" : "Show"} ${pastCount} earlier train${pastCount === 1 ? "" : "s"}</button>`
-    : "";
+    : hideable
+    ? `<button class="more" id="toggle-past" type="button" aria-expanded="${state.showPast}">${state.showPast ? "Hide" : "Show"} ${hideable} earlier train${hideable === 1 ? "" : "s"}</button>`
+    : "");
   const btn = $("toggle-past");
   if (btn) btn.onclick = () => { state.showPast = !state.showPast; render(); };
 
@@ -865,17 +965,17 @@ function render() {
     ? cols.map(name => `<span class="${name === from || name === to ? "on" : ""}">${esc(name)}</span>`).join("") + "<span>Train</span>"
     : `<span>Depart</span><span>Arrive</span><span class="ride-h">Ride</span><span>Train</span>`;
   const role = name => name === from ? "dep" : name === to ? "arr" : "via";
-  $("rows").innerHTML = list.map((t, i) => {
+  put($("rows"), list.map((t, i) => {
     const past = i < pastCount;
-    if (past && !state.showPast) return "";
-    const cls = past ? "past" : i === nextIdx ? "next" : "";
+    if (past && !state.showPast && i !== pickIdx) return "";
+    const cls = (past ? "past" : i === nextIdx ? "next" : "") + (i === pickIdx ? " picked" : "");
     const times = cols
       ? cols.map(name => t.at[name] == null
           ? `<span class="${role(name)} skip" aria-label="doesn't stop">—</span>`
           : `<span class="${role(name)}">${fmt(t.at[name])}</span>`).join("")
       : `<span class="dep">${fmt(t.dep)}</span><span class="arr">${fmt(t.arr)}</span><span class="ride">${t.arr - t.dep} min</span>`;
-    return `<li class="${cls}">${times}<span class="train">${chip(t.k)}<span class="num">${esc(t.n)}</span></span></li>`;
-  }).join("");
+    return `<li class="${cls}"><button type="button" data-n="${esc(t.n)}" aria-pressed="${i === pickIdx}">${times}<span class="train">${chip(t.k)}<span class="num">${esc(t.n)}</span></span></button></li>`;
+  }).join(""));
 }
 
 $("setup").onsubmit = e => {
@@ -890,6 +990,7 @@ $("setup").onsubmit = e => {
   $("setup-err").hidden = !err;
   if (err) return;
   prefs = { home, work, stop };
+  state.pick = null;
   store("stations", JSON.stringify(prefs));
   clock = draftClock;
   store("clock", clock);
@@ -905,8 +1006,12 @@ document.querySelectorAll("[data-clock]").forEach(b => b.onclick = () => {
 $("home-stn").onchange = $("work-stn").onchange = () => fillStops($("stop-stn").value);
 $("cancel").onclick = () => { state.editing = false; setupFilled = false; render(); };
 $("edit").onclick = () => { state.editing = true; setupFilled = false; render(); };
-document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { state.dir = b.dataset.dir; state.showPast = false; renderControls(); render(); });
+document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => {
+  if (b.dataset.dir !== state.dir) state.pick = null;
+  state.dir = b.dataset.dir; state.showPast = false; renderControls(); render();
+});
 document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => {
+  if (b.dataset.day !== state.day) state.pick = null;
   state.day = b.dataset.day;
   state.dayPinned = state.day !== upcomingDayType;
   state.showPast = false; renderControls(); render();
@@ -915,6 +1020,37 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
   if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
 });
+// Tapping a row shows its train on the card; tapping it again, or the next train's
+// row, goes back to the next train. Once the top of the card is scrolled away, the
+// tapped row stays where it was on screen, even though the card above it changes
+// height. While the top is in view the page stays put, so the heading and countdown
+// the tap was for don't slide under the controls.
+$("rows").onclick = e => {
+  const b = e.target.closest("button[data-n]");
+  if (!b) return;
+  const n = b.dataset.n, dow = shown.dow;
+  const top = b.getBoundingClientRect().top, listTop = $("list").getBoundingClientRect().top;
+  const cardInView = $("sign").getBoundingClientRect().top >= $("controls").getBoundingClientRect().bottom;
+  // This handler keeps things in place itself; hold off the browser's scroll anchoring.
+  document.body.style.overflowAnchor = "none";
+  requestAnimationFrame(() => document.body.style.overflowAnchor = "");
+  // Catch up first, in case a train has left since the last redraw. The pick keeps the
+  // day of the table that was tapped, so if that has moved on to the next day's
+  // trains, the next redraw drops it.
+  render();
+  state.pick = n === state.pick?.n || n === shown.next ? null : { n, dow };
+  render();
+  // An unpicked train among collapsed earlier ones disappears; then keep the table in place.
+  const moved = rowButton(n);
+  const dy = moved ? moved.getBoundingClientRect().top - top : $("list").getBoundingClientRect().top - listTop;
+  scrollBy(0, cardInView ? Math.min(dy, 0) : dy);
+};
+$("to-top").onclick = () => {
+  scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  $("sign").focus({ preventScroll: true });
+};
+addEventListener("scroll", updateTop, { passive: true });
+addEventListener("resize", updateTop);
 setInterval(() => { if (!state.editing) render(); }, 15000);
 renderControls();
 refresh();
