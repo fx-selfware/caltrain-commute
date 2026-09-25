@@ -50,7 +50,7 @@ Scenario: The card shows the next train, its countdown and the two after it
   And the countdown says "in 20 min"
 ```
 
-[Playwright](https://playwright.dev) runs them, through [playwright-bdd](https://vitalets.github.io/playwright-bdd/), against `index.html` in a phone-sized Chromium and WebKit (as on an iPhone). The steps are defined in `tests/steps/`. The tests don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each scenario sets the clock to a fixed Pacific time. The app itself still has no dependencies; `package.json` is only for the tests.
+[Playwright](https://playwright.dev) runs them, through [playwright-bdd](https://vitalets.github.io/playwright-bdd/), against `index.html` in a phone-sized Chromium and WebKit (as on an iPhone). The steps are defined in `tests/steps/`. The tests don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each scenario sets the clock to a fixed Pacific time. GitHub Actions runs them on every pull request and every push to `main`. The app itself still has no dependencies; `package.json` is only for the tests.
 
 ## Files
 

@@ -9,6 +9,7 @@ A one-page PWA. `index.html` holds all of the app's CSS and JavaScript: no build
   - Healthy output ends with `N passed`, with nothing failed or flaky. Every scenario runs twice: Chromium as a Pixel 7 and WebKit as an iPhone 13.
   - One scenario: `npm test -- --grep "words from its name"`.
   - Work isn't done until `npm test` passes. Don't skip or delete a failing scenario. For a bug fix, write the failing scenario first.
+  - CI (`.github/workflows/test.yml`) runs `npm test` on every pull request and every push to `main`. Check a PR's run with `gh pr checks <number>`.
 - Check it by eye in Chrome (Claude in Chrome), always, as well as `npm test`. Scenarios only check what a spec names; looking catches the design problems nobody wrote down, such as spacing, wrapping, overlap, contrast or anything that looks off.
   - Use the local server at phone width.
   - Go through every screen and state the change touches, in light and dark.
