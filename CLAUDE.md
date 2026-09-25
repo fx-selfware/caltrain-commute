@@ -29,10 +29,28 @@ The tests are BDD scenarios in Gherkin, run by Playwright through [playwright-bd
 - Scenarios run with the service worker blocked, so no cached copy leaks between steps. Tag a scenario `@service-worker` to run it with the worker, as `tests/features/offline.feature` does.
 - `@chromium-only` skips a scenario in WebKit, for things Playwright's WebKit can't do (such as loading pages while offline). Say why in a comment above the tag.
 
+## How we work
+
+We follow the [AI-native SDLC playbook](https://claude.com/blog/the-ai-native-sdlc-playbook). For a feature:
+
+1. **Intent.** Start a folder in `docs/` named `YYYY-MM-DD-<name>`, dated the day the work starts (e.g. `docs/2026-09-25-select-train/`). Write `intent.md`: the problem, the outcome, who and what it affects, constraints, and open questions. Ask the owner the open questions and record the answers.
+2. **Spec and plan.** Write `spec.md`: requirements, design, and concerns to flag.
+   - Have a fresh-context agent stress-test the design against the code.
+   - Then plan in plan mode. The owner's approval of the plan approves the spec too.
+   - Save the approved plan as `plan.md`. Later changes of course go in it as amendments.
+3. **Build on a branch, test first.** Write the scenarios and see them fail, then write the code.
+4. **Verify.**
+   - `npm test` passes.
+   - Break the fix on purpose and check that its scenario fails.
+   - Check by eye in Chrome, as described under Commands.
+5. **Review.** Run `/code-review` on the diff, in a fresh context. Fix what it confirms, each fix with a failing scenario first.
+6. **Deliver.** Push the branch and open a PR that links the docs and lists what was verified. Wait for CI to pass. Never commit straight to `main`, and leave merging to the owner.
+7. **After the merge.** Update local `main` and delete the branch. Confirm the Tests run on `main` passed and that the live site (GitHub Pages) serves the change.
+
+A smaller change may need only `intent.md`; the owner says when. A bug fix always starts with a failing scenario.
+
 ## Conventions
 
-- Each piece of work gets a folder in `docs/` named `YYYY-MM-DD-<name>`, dated the day the work starts, so the folders list in order (e.g. `docs/2026-09-25-select-train/`).
-- Feature work follows `intent.md` → `spec.md` → `plan.md` in that folder, each approved before the next. A smaller change may need only `intent.md`; the owner says when.
 - Colors are tokens on `:root`, with dark-mode overrides; check both themes.
 - Anything from caltrain.com goes through `esc()` before it goes into HTML.
 - Keep README's "Using it" in step with the controls.
