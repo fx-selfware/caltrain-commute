@@ -1,7 +1,12 @@
 // Offline support: the app shell comes from the cache right away and is refreshed
 // in the background, so a new version shows up on the next launch. caltrain.com
 // requests go straight to the network; the page keeps its own saved timetable.
-const CACHE = "commute-v3";
+// Other pages on the site are left alone: answering them with the app, or saving
+// them as the app, would show the wrong page on the next launch.
+const CACHE = "commute-v4";
+// The app's own page: the folder this file is in, locally "/" and on GitHub Pages
+// "/caltrain-commute/".
+const APP = new URL("./", location).pathname;
 const SHELL = [
   "./", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png",
   "fonts/overpass-latin-400.woff2", "fonts/overpass-latin-600.woff2", "fonts/overpass-latin-800.woff2",
@@ -24,6 +29,8 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
+  const isApp = url.pathname === APP || url.pathname === APP + "index.html";
+  if (e.request.mode === "navigate" && !isApp) return;
   const key = e.request.mode === "navigate" ? "./" : e.request;
   const cache = caches.open(CACHE);
   const fresh = cache.then(c => fetch(e.request).then(res => {

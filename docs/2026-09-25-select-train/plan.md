@@ -60,7 +60,7 @@ Checking by eye in Chrome, with live data at 390px and 340px in light and dark, 
 
 - `index.html`: all behavior, markup and CSS.
 - `README.md`: one line under "Using it" about tapping a row, and a `docs/` row in the Files table.
-- `docs/select-train/`:
+- `docs/2026-09-25-select-train/`:
   - `spec.md`: the amendments above; status set to approved.
   - `plan.md`: this plan.
 - `sw.js`: no change. It already refreshes `index.html` in the background.
@@ -103,7 +103,7 @@ Checking by eye in Chrome, with live data at 390px and 340px in light and dark, 
 8. **Docs.**
    - README lines.
    - Apply the spec amendments and set its status to approved.
-   - Copy this plan to `docs/select-train/plan.md`.
+   - Copy this plan to `docs/2026-09-25-select-train/plan.md`.
 
 ## Risks
 
