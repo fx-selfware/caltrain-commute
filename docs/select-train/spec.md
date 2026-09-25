@@ -60,10 +60,14 @@ up behind the sticky controls) and the timetable is showing, whether or not a
 train is picked. Tapping it scrolls to the top (smoothly, unless the device
 asks for reduced motion) and moves keyboard focus to the card.
 
-Picking a row never scrolls to the card. The row you tapped stays where it was
-on screen, even when the card above it changes height (the other day's summary
-turning into a train card, or the back button appearing): the page scrolls by
-exactly that difference.
+Picking a row never scrolls to the card. Once the top of the card is scrolled
+away, the row you tapped stays where it was on screen, even when the card above
+it changes height (the other day's summary turning into a train card, or the
+back button appearing): the page scrolls by exactly that difference. While the
+top of the card is in view, the page doesn't scroll down, so the heading and
+countdown stay in view and the rows below move instead. (Found by eye in
+Chrome after the first build: keeping the row in place slid the card's heading
+under the controls.)
 
 **R6. Keyboard and screen reader.** Row buttons are in the tab order and show
 a focus ring inside the row, since the list clips anything outside it. After

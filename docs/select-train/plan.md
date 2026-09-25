@@ -44,6 +44,10 @@ A fresh-context `/code-review` of the finished diff found the following. Each fi
   - The "Weekday/Weekend schedule" label is built in one place.
 - **Not changed: the floating button measures the card on every scroll.** Layout is already clean while scrolling, so this doesn't force a reflow. An IntersectionObserver would need a margin that follows the sticky controls' height.
 
+## Amendment after the visual check in Chrome
+
+Checking by eye in Chrome, with live data at 390px and 340px in light and dark, found a problem no scenario covered. With the page at the top, picking a row made the card taller. The code that keeps the tapped row in place then scrolled the page, and that slid the card's heading and countdown under the sticky controls. Now the page doesn't scroll down while the top of the card is in view (R5 amended), and a scenario checks it.
+
 ## Spec amendments (from the stress test)
 
 - **The tapped row stays under your finger.** Picking changes the card's height: the other day's summary becomes a full train card, and the back button comes and goes. That would push every row down. After redrawing, the page scrolls by exactly that difference, so the row you tapped stays put. It never jumps to the card; this refines R5's "never scrolls".

@@ -231,6 +231,14 @@ Feature: Pick a train from the timetable
     And the card has keyboard focus
 
   @R5
+  Scenario: Picking a train with the card in view leaves the card's heading in view
+    # Found by eye in Chrome: keeping the row in place scrolled the heading under the controls.
+    Given I open the app
+    When I tap train 106
+    Then the card is headed "Selected train"
+    And the top of the card is in view
+
+  @R5
   Scenario: The tapped train stays put while the card above it changes height
     Given the screen is 390 by 520 pixels
     And I open the app

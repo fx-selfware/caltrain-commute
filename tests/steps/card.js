@@ -50,6 +50,12 @@ Then("the card has keyboard focus", async ({ page }) => {
   await expect(card(page)).toBeFocused();
 });
 
+// Not scrolled up under the sticky controls.
+Then("the top of the card is in view", async ({ page }) => {
+  const controls = await page.locator("#controls").boundingBox();
+  expect((await card(page).boundingBox()).y).toBeGreaterThanOrEqual(controls.y + controls.height);
+});
+
 Then("the card has changed height", async ({ page, app }) => {
   expect((await card(page).boundingBox()).height).not.toBe(app.noted.card);
 });

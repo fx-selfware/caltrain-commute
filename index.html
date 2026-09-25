@@ -1021,13 +1021,16 @@ document.addEventListener("visibilitychange", () => {
   if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
 });
 // Tapping a row shows its train on the card; tapping it again, or the next train's
-// row, goes back to the next train. The tapped row stays where it was on screen,
-// even though the card above it changes height.
+// row, goes back to the next train. Once the top of the card is scrolled away, the
+// tapped row stays where it was on screen, even though the card above it changes
+// height. While the top is in view the page stays put, so the heading and countdown
+// the tap was for don't slide under the controls.
 $("rows").onclick = e => {
   const b = e.target.closest("button[data-n]");
   if (!b) return;
   const n = b.dataset.n, dow = shown.dow;
   const top = b.getBoundingClientRect().top, listTop = $("list").getBoundingClientRect().top;
+  const cardInView = $("sign").getBoundingClientRect().top >= $("controls").getBoundingClientRect().bottom;
   // This handler keeps things in place itself; hold off the browser's scroll anchoring.
   document.body.style.overflowAnchor = "none";
   requestAnimationFrame(() => document.body.style.overflowAnchor = "");
@@ -1039,7 +1042,8 @@ $("rows").onclick = e => {
   render();
   // An unpicked train among collapsed earlier ones disappears; then keep the table in place.
   const moved = rowButton(n);
-  scrollBy(0, moved ? moved.getBoundingClientRect().top - top : $("list").getBoundingClientRect().top - listTop);
+  const dy = moved ? moved.getBoundingClientRect().top - top : $("list").getBoundingClientRect().top - listTop;
+  scrollBy(0, cardInView ? Math.min(dy, 0) : dy);
 };
 $("to-top").onclick = () => {
   scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
