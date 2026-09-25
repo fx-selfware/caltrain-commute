@@ -1,6 +1,6 @@
 Feature: Pick a train from the timetable
   Tapping a train in the timetable shows it on the card instead of the next train.
-  Tags point at the requirements in docs/select-train/spec.md.
+  Tags point at the requirements in docs/2026-09-25-select-train/spec.md.
 
   Background:
     Given it is Wednesday 7:10am

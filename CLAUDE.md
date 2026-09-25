@@ -27,7 +27,8 @@ The tests are BDD scenarios in Gherkin, run by Playwright through [playwright-bd
 
 ## Conventions
 
-- Feature work follows `docs/<feature>/intent.md` → `spec.md` → `plan.md`, each approved before the next. See `docs/select-train/`.
+- Each piece of work gets a folder in `docs/` named `YYYY-MM-DD-<name>`, dated the day the work starts, so the folders list in order (e.g. `docs/2026-09-25-select-train/`).
+- Feature work follows `intent.md` → `spec.md` → `plan.md` in that folder, each approved before the next. A smaller change may need only `intent.md`; the owner says when.
 - Colors are tokens on `:root`, with dark-mode overrides; check both themes.
 - Anything from caltrain.com goes through `esc()` before it goes into HTML.
 - Keep README's "Using it" in step with the controls.

@@ -64,7 +64,7 @@ Scenario: The card shows the next train, its countdown and the two after it
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
 | `tests/`, `playwright.config.js`, `package.json` | Test scenarios, their step definitions, and a stand-in for caltrain.com's timetable |
 | `CLAUDE.md` | Commands and conventions for coding agents |
-| `docs/` | Intent, spec and plan for each feature, written before building it |
+| `docs/` | One dated folder per piece of work (`YYYY-MM-DD-name`) with its intent, and for features its spec and plan, written before building it |
 
 ## Disclaimer
 
