@@ -38,7 +38,18 @@ npx playwright install chromium webkit   # first time only
 npm test
 ```
 
-The tests load `index.html` in a phone-sized Chromium and WebKit (as on an iPhone) with [Playwright](https://playwright.dev). They don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each test sets the clock to a fixed Pacific time. The app itself still has no dependencies; `package.json` is only for the tests.
+The tests are scenarios written in plain language (Gherkin), one file per feature in `tests/features/`, for example:
+
+```gherkin
+Scenario: The card shows the next train, its countdown and the two after it
+  Given it is Wednesday 7:10am
+  And my commute is from "San Francisco" to "Mountain View"
+  When I open the app
+  Then the card is headed "Next train"
+  And the countdown says "in 20 min"
+```
+
+[Playwright](https://playwright.dev) runs them, through [playwright-bdd](https://vitalets.github.io/playwright-bdd/), against `index.html` in a phone-sized Chromium and WebKit (as on an iPhone). The steps are defined in `tests/steps/`. The tests don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each scenario sets the clock to a fixed Pacific time. The app itself still has no dependencies; `package.json` is only for the tests.
 
 ## Files
 
@@ -50,8 +61,9 @@ The tests load `index.html` in a phone-sized Chromium and WebKit (as on an iPhon
 | `icon.svg` | Icon source: a train front on a platform-edge warning strip |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons rendered from `icon.svg` |
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
-| `tests/`, `playwright.config.js`, `package.json` | Browser tests and their fake caltrain.com timetable |
+| `tests/`, `playwright.config.js`, `package.json` | Test scenarios, their step definitions, and a stand-in for caltrain.com's timetable |
 | `CLAUDE.md` | Commands and conventions for coding agents |
+| `docs/` | Intent, spec and plan for each feature, written before building it |
 
 ## Disclaimer
 

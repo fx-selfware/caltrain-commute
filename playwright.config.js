@@ -1,12 +1,19 @@
-// Tests run the real index.html from a local server in a phone-sized Chromium and WebKit.
-// caltrain.com is never contacted: each test serves tests/fixtures/timetable.html in its
-// place and sets the clock (see tests/helpers.js).
+// Scenarios in tests/features/*.feature run against the real index.html, served locally,
+// in a phone-sized Chromium and WebKit. playwright-bdd turns them into Playwright tests
+// (in .features-gen/) using the steps in tests/steps/. caltrain.com is never contacted:
+// tests/fixtures/timetable.html stands in for it, and the clock is set per scenario.
 const { defineConfig, devices } = require("@playwright/test");
+const { defineBddConfig } = require("playwright-bdd");
 
 const PORT = 8766;
 
+const testDir = defineBddConfig({
+  features: "tests/features/*.feature",
+  steps: "tests/steps/*.js",
+});
+
 module.exports = defineConfig({
-  testDir: "tests",
+  testDir,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? "github" : "list",

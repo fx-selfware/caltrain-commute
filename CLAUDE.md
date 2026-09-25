@@ -6,14 +6,20 @@ A one-page PWA. `index.html` holds all of the app's CSS and JavaScript: no build
 
 - Run locally: `python3 -m http.server 8765`, then open http://localhost:8765. After a change, reload twice (the service worker serves the cached copy first).
 - Test: `npm test`. The first time, run `npm install && npx playwright install chromium webkit`.
-  - Healthy output ends with `N passed`, with nothing failed or flaky. Every test runs twice: Chromium as a Pixel 7 and WebKit as an iPhone 13.
-  - Work isn't done until `npm test` passes. Don't skip or delete a failing test. For a bug fix, write the failing test first.
+  - Healthy output ends with `N passed`, with nothing failed or flaky. Every scenario runs twice: Chromium as a Pixel 7 and WebKit as an iPhone 13.
+  - One scenario: `npm test -- --grep "words from its name"`.
+  - Work isn't done until `npm test` passes. Don't skip or delete a failing scenario. For a bug fix, write the failing scenario first.
 
 ## Tests
 
-- Tests never contact caltrain.com. `tests/fixtures/timetable.html` stands in for it, with the same markup the page parses. The comment at its top lists every train.
-- `open(page, { at: "2026-09-23T07:10", prefs, hash })` in `tests/helpers.js` loads the app at a Pacific time with the clock paused. `page.clock.runFor(ms)` moves time and runs the 15-second redraw; `advanceTo(page, time)` jumps.
-- Test what the viewer sees (text, `aria-pressed`, classes on rows), not internal state.
+The tests are BDD scenarios in Gherkin, run by Playwright through [playwright-bdd](https://vitalets.github.io/playwright-bdd/).
+
+- `tests/features/*.feature` holds one feature per area, in the viewer's words. Each Given sets up the time, the stations or caltrain.com; each When is a tap, a key or time passing; each Then is something on screen.
+- `tests/steps/` holds the step definitions, grouped by setup, actions, the card, the timetable and the rest of the page. Reuse an existing step before writing a new one.
+- `tests/support/app.js` drives the app. It opens it at a Pacific time with the clock paused ("it is Wednesday 7:10am" is September 23, 2026).
+- Tests never contact caltrain.com. `tests/fixtures/timetable.html` stands in for it, with the same markup the page parses; the comment at its top lists every train.
+- `npm test` generates Playwright tests into `.features-gen/` (ignored by git) first.
+- Steps check what the viewer sees (text, `aria-pressed`, classes on rows), not internal state.
 
 ## Conventions
 
