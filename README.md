@@ -9,6 +9,8 @@ A phone-sized page for one Caltrain commute: the next train with a countdown, an
 - The last timetable it loaded is kept, so the page still works offline or when caltrain.com is down, and it says when it's showing a saved copy.
 - It's a progressive web app. Add it to your home screen to open it like an app.
 
+It only lists single trains that stop at both of your stations, so a trip that needs a transfer shows "No weekday trains stop at both stations" (or "weekend"). For example, Gilroy, San Martin, Morgan Hill, Blossom Hill and Capitol are served only by South County trains that end at San Jose Diridon, so trips from those stations to anywhere farther north need a transfer.
+
 It shows scheduled times only, not real-time delays. On holidays that run a weekend schedule, switch to **Weekend** by hand.
 
 ## Using it
@@ -32,9 +34,10 @@ After you change a file, reload twice: the service worker serves the cached vers
 | File | Purpose |
 | --- | --- |
 | `index.html` | The whole app: timetable download and parsing, station picker, and layout |
-| `sw.js` | Service worker that caches the app and fonts for offline use |
+| `sw.js` | Service worker that caches the app, including its fonts, for offline use |
 | `manifest.webmanifest` | App name, colors, and icons for installing |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons |
+| `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
 
 ## Disclaimer
 
@@ -42,4 +45,4 @@ This project isn't affiliated with or endorsed by Caltrain. Timetable data comes
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The Overpass font files in `fonts/` are under the SIL Open Font License 1.1 ([`fonts/OFL.txt`](fonts/OFL.txt)).

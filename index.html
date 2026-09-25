@@ -9,13 +9,15 @@
 <meta name="theme-color" content="#0D1215" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Commute">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&display=swap">
 <style>
+@font-face { font-family: "Overpass"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/overpass-latin-400.woff2") format("woff2"); }
+@font-face { font-family: "Overpass"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/overpass-latin-600.woff2") format("woff2"); }
+@font-face { font-family: "Overpass"; font-style: normal; font-weight: 800; font-display: swap; src: url("fonts/overpass-latin-800.woff2") format("woff2"); }
+
 :root {
   --bg: #EEF1F2;
   --surface: #FFFFFF;
@@ -537,6 +539,7 @@ const state = {
   dir: hash === "home" ? "home" : "work",
   work: store("work"),
   day: dayType(now0.dow),
+  dayPinned: false,
   showPast: false,
   editing: false,
 };
@@ -607,6 +610,8 @@ function renderFooter() {
 function render() {
   const now = serviceNow();
   const today = dayType(now.dow);
+  // Follow the service day (e.g. past 3am into Saturday) unless the viewer picked another one.
+  if (!state.dayPinned && state.day !== today) { state.day = today; state.showPast = false; renderControls(); }
   const isReady = ready();
   const showSetup = !!DATA && (state.editing || !isReady);
   if (showSetup && !setupFilled) fillSetup();
@@ -725,7 +730,11 @@ $("setup").onsubmit = e => {
 $("cancel").onclick = () => { state.editing = false; setupFilled = false; render(); };
 $("edit").onclick = () => { state.editing = true; setupFilled = false; render(); };
 document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { state.dir = b.dataset.dir; state.showPast = false; renderControls(); render(); });
-document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; state.showPast = false; renderControls(); render(); });
+document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => {
+  state.day = b.dataset.day;
+  state.dayPinned = state.day !== dayType(serviceNow().dow);
+  state.showPast = false; renderControls(); render();
+});
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
   if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
