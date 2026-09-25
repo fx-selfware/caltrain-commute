@@ -293,10 +293,26 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   font-weight: 600;
   color: var(--muted);
 }
+.select { position: relative; display: grid; }
+/* Own chevron so the gap on the right is the same in every browser. */
+.select::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
 .field select {
+  -webkit-appearance: none;
+  appearance: none;
   font: inherit;
   font-size: 16px;
-  padding: 10px 12px 8px;
+  padding: 10px 46px 8px 12px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--bg);
@@ -363,15 +379,15 @@ footer .warn { color: var(--warn); font-weight: 600; }
     <p>Saved only in this browser. The page downloads the whole Caltrain timetable and picks out your trains itself.</p>
     <div class="field">
       <label for="home-stn">Home</label>
-      <select id="home-stn"></select>
+      <span class="select"><select id="home-stn"></select></span>
     </div>
     <div class="field">
       <label for="work-stn-1">Work</label>
-      <select id="work-stn-1"></select>
+      <span class="select"><select id="work-stn-1"></select></span>
     </div>
     <div class="field">
       <label for="work-stn-2">Second work station (optional)</label>
-      <select id="work-stn-2"></select>
+      <span class="select"><select id="work-stn-2"></select></span>
     </div>
     <p class="err" id="setup-err" role="alert" hidden></p>
     <div class="actions">
@@ -575,8 +591,9 @@ function renderControls() {
 }
 
 function fillSetup() {
+  const byName = [...DATA.stations].sort((a, b) => a.name.localeCompare(b.name));
   const fill = (sel, blank, value) => {
-    sel.replaceChildren(new Option(blank, ""), ...DATA.stations.map(s => new Option(s.name, s.name)));
+    sel.replaceChildren(new Option(blank, ""), ...byName.map(s => new Option(s.name, s.name)));
     sel.value = value || "";
   };
   fill($("home-stn"), "Choose a station", prefs?.home);
