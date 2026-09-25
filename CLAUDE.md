@@ -10,6 +10,7 @@ A one-page PWA. `index.html` holds all of the app's CSS and JavaScript: no build
   - One scenario: `npm test -- --grep "words from its name"`.
   - Work isn't done until `npm test` passes. Don't skip or delete a failing scenario. For a bug fix, write the failing scenario first.
   - CI (`.github/workflows/test.yml`) runs `npm test` on every pull request and every push to `main`. Check a PR's run with `gh pr checks <number>`.
+  - The "Tests must pass" ruleset on `main` requires that run (the `test` check) before merging. Admins can bypass it; that's for the owner to choose, never an agent.
 - Check it by eye in Chrome (Claude in Chrome), always, as well as `npm test`. Scenarios only check what a spec names; looking catches the design problems nobody wrote down, such as spacing, wrapping, overlap, contrast or anything that looks off.
   - Use the local server at phone width.
   - Go through every screen and state the change touches, in light and dark.
