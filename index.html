@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caltrain Commute</title>
+<meta name="description" content="Next train and today's Caltrain times between your home and work stations, loaded from caltrain.com.">
+<meta name="theme-color" content="#EEF1F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1215" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Commute">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&display=swap">
+<style>
+:root {
+  --bg: #EEF1F2;
+  --surface: #FFFFFF;
+  --ink: #12181C;
+  --muted: #5B6870;
+  --line: #D8DEE1;
+  --seg-bg: #DDE3E6;
+  --seg-on: #12181C;
+  --seg-on-ink: #FFFFFF;
+  --sign-bg: #12181C;
+  --sign-ink: #F3F5F6;
+  --sign-muted: #A3B0B7;
+  --sign-rule: #2C363D;
+  --signal: #F4C21B;
+  --next-bg: #FFF3C4;
+  --next-ink: #6B5200;
+  --warn: #A3261B;
+  --local-bg: #12181C;
+  --local-ink: #FFFFFF;
+  --limited-bg: #99D7DC;
+  --limited-ink: #0A2629;
+  --express-bg: #CE202F;
+  --express-ink: #FFFFFF;
+  --south-bg: #FAE4A7;
+  --south-ink: #3A2E00;
+  --focus: #1F6FEB;
+  --font: "Overpass", "Helvetica Neue", Arial, system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0D1215;
+    --surface: #151C21;
+    --ink: #E6EBEE;
+    --muted: #8C9AA3;
+    --line: #243038;
+    --seg-bg: #1B252C;
+    --seg-on: #E6EBEE;
+    --seg-on-ink: #0D1215;
+    --sign-bg: #1C272E;
+    --sign-rule: #33414A;
+    --next-bg: #2B2710;
+    --next-ink: #F4C21B;
+    --warn: #FF8A7A;
+    --local-bg: #E6EBEE;
+    --local-ink: #0D1215;
+    --focus: #6EA8FF;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 0 32px;
+  display: grid;
+  gap: 16px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Controls */
+.controls {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 2;
+  background: var(--bg);
+  padding-block: 14px 10px;
+  display: grid;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.clock {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.clock b { color: var(--ink); font-weight: 600; }
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--seg-bg);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+.seg button {
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 6px 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}
+.seg button[aria-pressed="true"] { background: var(--seg-on); color: var(--seg-on-ink); }
+.seg.big button { font-size: 17px; font-weight: 800; padding: 11px 6px 9px; }
+.seg.small { border-radius: 8px; padding: 2px; gap: 2px; flex: none; }
+.seg.small button { font-size: 12px; padding: 5px 9px 3px; border-radius: 6px; }
+
+.controls[hidden] ~ .sign { margin-top: 16px; }
+
+/* Platform sign: next train */
+.sign {
+  background: var(--sign-bg);
+  color: var(--sign-ink);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.domes {
+  height: 14px;
+  background:
+    radial-gradient(circle at 7px 7px, rgba(0,0,0,.26) 0 2.6px, transparent 3.2px) 0 0 / 14px 14px,
+    var(--signal);
+}
+.sign-body { padding: 14px 16px 16px; display: grid; gap: 14px; }
+.sign-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 600;
+  color: var(--sign-muted);
+}
+.count { font-size: 26px; font-weight: 800; color: var(--signal); line-height: 1; }
+.legs { display: grid; grid-template-columns: auto minmax(44px, 1fr) auto; align-items: center; gap: 10px; }
+.legs .t { font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+.legs .t small, .rows small { font-size: .45em; font-weight: 600; margin-left: 2px; letter-spacing: .02em; }
+.legs .s { font-size: 13px; color: var(--sign-muted); margin-top: 6px; }
+.legs .end { text-align: right; }
+.track { position: relative; height: 34px; }
+.track::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 2px solid var(--sign-muted);
+}
+.track .dots { position: absolute; inset: 0; display: flex; justify-content: space-evenly; align-items: center; }
+.track .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--sign-bg); border: 2px solid var(--sign-muted); }
+.track .ride {
+  position: absolute; left: 0; right: 0; top: calc(50% + 6px);
+  text-align: center; font-size: 12px; color: var(--sign-muted);
+}
+.meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--sign-muted); }
+.meta b { color: var(--sign-ink); font-weight: 600; }
+.after {
+  border-top: 1px solid var(--sign-rule);
+  padding: 10px 16px 12px;
+  font-size: 13px;
+  color: var(--sign-muted);
+  display: flex;
+  gap: 6px 14px;
+  flex-wrap: wrap;
+}
+.after b { color: var(--sign-ink); font-weight: 600; }
+.sign .empty { font-size: 22px; font-weight: 800; }
+.sign .retry {
+  justify-self: start;
+  border: 0;
+  border-radius: 8px;
+  background: var(--signal);
+  color: #12181C;
+  font-weight: 800;
+  padding: 9px 14px 7px;
+}
+
+/* Service chips, colored as on the Caltrain timetable */
+.chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 3px 6px 1px;
+  border-radius: 4px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.chip.local { background: var(--local-bg); color: var(--local-ink); }
+.sign .chip.local { background: var(--sign-ink); color: var(--sign-bg); }
+.chip.limited { background: var(--limited-bg); color: var(--limited-ink); }
+.chip.express { background: var(--express-bg); color: var(--express-ink); }
+.chip.south { background: var(--south-bg); color: var(--south-ink); }
+
+/* Timetable */
+/* Header and rows share one column set in rem, so it doesn't scale with each row's font size. */
+.list { --cols: 4.9rem 4.3rem 1fr auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
+.list-head, .rows li {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: center;
+  gap: 8px;
+  padding-inline: 14px;
+}
+.list-head {
+  padding-block: 10px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.list-head span:last-child { text-align: right; }
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows li { padding-block: 11px 9px; border-bottom: 1px solid var(--line); }
+.rows li:last-child { border-bottom: 0; }
+.rows .dep { font-size: 20px; font-weight: 800; }
+.rows .arr { font-size: 17px; font-weight: 600; color: var(--muted); }
+.rows .ride { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.rows .train { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.rows .num { font-size: 13px; color: var(--muted); min-width: 2.2em; text-align: right; }
+.rows li.past { opacity: .5; }
+.rows li.next { background: var(--next-bg); }
+.rows li.next .ride { color: var(--next-ink); font-weight: 600; }
+.more {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  padding: 11px 14px 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+}
+
+/* Station picker */
+.work-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.edit {
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 16px 16px;
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+.panel h2 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.2; text-wrap: balance; }
+.panel p { margin: 0; color: var(--muted); font-size: 13px; }
+.field { display: grid; gap: 6px; }
+.field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+  color: var(--muted);
+}
+.field select {
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+}
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primary {
+  border: 0;
+  border-radius: 10px;
+  background: var(--seg-on);
+  color: var(--seg-on-ink);
+  font-weight: 800;
+  padding: 11px 20px 9px;
+}
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 11px 16px 9px;
+  color: var(--muted);
+}
+.panel .err { color: var(--warn); font-weight: 600; font-size: 14px; }
+
+footer { font-size: 12px; color: var(--muted); line-height: 1.5; }
+footer a { color: var(--ink); }
+footer .warn { color: var(--warn); font-weight: 600; }
+
+@media (max-width: 380px) {
+  .legs .t { font-size: 31px; }
+  .list { --cols: 4.6rem 4rem 1fr auto; }
+  .list-head, .rows li { padding-inline: 12px; gap: 6px; }
+}
+@media (max-width: 350px) {
+  .legs { grid-template-columns: auto minmax(28px, 1fr) auto; gap: 6px; }
+  .legs .t { font-size: 26px; }
+  .list { --cols: 4.6rem 4rem 1fr; }
+  .list-head span:nth-child(3), .rows .ride { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="controls" id="controls" hidden>
+    <div class="clock">
+      <span id="today"></span>
+      <div class="seg small" role="group" aria-label="Schedule">
+        <button id="day-weekday" data-day="weekday" aria-pressed="false">Weekday</button>
+        <button id="day-weekend" data-day="weekend" aria-pressed="false">Weekend</button>
+      </div>
+    </div>
+    <div class="seg big" role="group" aria-label="Direction">
+      <button id="dir-work" data-dir="work" aria-pressed="false">Work</button>
+      <button id="dir-home" data-dir="home" aria-pressed="false">Home</button>
+    </div>
+    <div class="work-row">
+      <div class="seg" role="group" aria-label="Work station" id="works"></div>
+      <button class="edit" id="edit">Stations</button>
+    </div>
+  </div>
+
+  <form class="panel" id="setup" hidden aria-labelledby="setup-title" novalidate>
+    <h2 id="setup-title">Your stations</h2>
+    <p>Saved only in this browser. The page downloads the whole Caltrain timetable and picks out your trains itself.</p>
+    <div class="field">
+      <label for="home-stn">Home</label>
+      <select id="home-stn"></select>
+    </div>
+    <div class="field">
+      <label for="work-stn-1">Work</label>
+      <select id="work-stn-1"></select>
+    </div>
+    <div class="field">
+      <label for="work-stn-2">Second work station (optional)</label>
+      <select id="work-stn-2"></select>
+    </div>
+    <p class="err" id="setup-err" role="alert" hidden></p>
+    <div class="actions">
+      <button class="primary" id="save" type="submit">Save</button>
+      <button class="secondary" id="cancel" type="button">Cancel</button>
+    </div>
+  </form>
+
+  <section class="sign" id="sign" aria-label="Next train"></section>
+
+  <section class="list" id="list" aria-label="Timetable" hidden>
+    <div class="list-head"><span>Depart</span><span>Arrive</span><span>Ride</span><span>Train</span></div>
+    <div id="listNote"></div>
+    <ol class="rows" id="rows"></ol>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+// caltrain.com's timetable tab carries the full timetable: one table per direction,
+// one column per trip, weekday and weekend service together. Use a URL that answers
+// directly; redirects don't carry the header that lets the browser read the page.
+const SOURCE = "https://www.caltrain.com/?active_tab=route_explorer_tab";
+const CACHE_KEY = "commute.timetable.v2";
+const RECHECK_MS = 30 * 60 * 1000;
+// Route ids from the timetable -> chip style and label.
+const KIND = {
+  "Local Weekday": ["local", "Local"],
+  "Local Weekend": ["local", "Local"],
+  "Limited": ["limited", "Limited"],
+  "Express": ["express", "Express"],
+  "South County": ["south", "S. County"],
+};
+const kind = routeId => KIND[routeId] || ["local", routeId];
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function store(key, val) {
+  try {
+    if (val === undefined) return localStorage.getItem("commute." + key);
+    localStorage.setItem("commute." + key, val);
+  } catch (e) { return null; }
+}
+
+// "8:12am" -> minutes since midnight. Trains after midnight belong to the
+// previous service day, so they count past 24:00.
+function toMin(text) {
+  const m = /^(\d{1,2}):(\d{2})(am|pm)$/.exec(text.trim());
+  if (!m) return null;
+  const t = ((+m[1] % 12) + (m[3] === "pm" ? 12 : 0)) * 60 + +m[2];
+  return t < 180 ? t + 1440 : t;
+}
+
+function parseTimetable(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const ids = {};
+  for (const o of doc.querySelectorAll('select[name="filter_origin"] option')) {
+    if (/^\d+$/.test(o.value)) ids[o.textContent.trim()] = +o.value;
+  }
+  const dirs = {};
+  for (const table of doc.querySelectorAll("table.caltrain_schedule")) {
+    const heads = [...table.querySelectorAll("td[data-service-type][data-trip-id]")];
+    // Station rows run in travel order for the table's direction.
+    const rows = [...table.querySelectorAll("tr[data-stop-id]")].map(tr => ({
+      name: tr.querySelector("td.station")?.textContent.trim(),
+      times: [...tr.querySelectorAll("td.timepoint")].map(td => toMin(td.textContent)),
+    }));
+    dirs[table.dataset.direction === "northbound" ? "north" : "south"] = {
+      stops: rows.map(r => r.name),
+      trips: heads.map((th, col) => ({
+        n: th.dataset.tripId, k: th.dataset.routeId, s: th.dataset.serviceType,
+        t: rows.map(r => r.times[col] ?? null),
+      })),
+    };
+  }
+  if (!dirs.north?.trips.length || !dirs.south?.trips.length || dirs.south.stops.length < 2) {
+    throw new Error("The caltrain.com timetable has a layout this page doesn't recognize");
+  }
+  // Stations listed north to south, as on the printed timetable.
+  const stations = dirs.south.stops.map(name => ({ name, id: ids[name] ?? null }));
+  return { v: 2, stations, dirs };
+}
+
+function readCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+    return c && c.v === 2 && c.dirs && c.stations ? c : null;
+  } catch (e) { return null; }
+}
+function readPrefs() {
+  try {
+    const p = JSON.parse(store("stations"));
+    if (p && typeof p.home === "string" && Array.isArray(p.works) && p.works.length) return p;
+  } catch (e) {}
+  return null;
+}
+
+let DATA = readCache();
+let prefs = readPrefs();
+let status = { state: DATA ? "checking" : "loading" };
+let lastCheck = 0;
+
+async function refresh() {
+  lastCheck = Date.now();
+  status = { state: DATA ? "checking" : "loading" };
+  render();
+  try {
+    const res = await fetch(SOURCE);
+    if (!res.ok) throw new Error(`The caltrain.com server returned an error (HTTP ${res.status})`);
+    const data = parseTimetable(await res.text());
+    data.at = Date.now();
+    DATA = data;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+    status = { state: "live" };
+  } catch (e) {
+    status = { state: "failed", msg: e instanceof TypeError ? "Couldn't reach caltrain.com" : e.message };
+  }
+  renderControls();
+  render();
+}
+
+// Current time on the Caltrain service clock (Pacific). Before 3am counts as the
+// previous service day, with minutes past 24:00, matching the timetable.
+function serviceNow() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric",
+    hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23",
+  }).formatToParts(new Date());
+  const get = t => parts.find(p => p.type === t).value;
+  const h = +get("hour") % 24, m = +get("minute"), s = +get("second");
+  let dow = DAYS.indexOf(get("weekday"));
+  let sec = h * 3600 + m * 60 + s;
+  if (h < 3) { dow = (dow + 6) % 7; sec += 86400; }
+  return { dow, sec, min: Math.floor(sec / 60), label: `${get("weekday")}, ${get("month")} ${get("day")}`, h, m };
+}
+const dayType = dow => (dow === 0 || dow === 6) ? "weekend" : "weekday";
+
+function fmt(min) {
+  const h = Math.floor(min / 60) % 24, m = min % 60;
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")}<small>${h < 12 ? "am" : "pm"}</small>`;
+}
+function fmtPlain(min) { return fmt(min).replace(/<[^>]+>/g, ""); }
+function until(sec) {
+  if (sec < 60) return "departing now";
+  const mins = Math.floor(sec / 60);
+  if (mins < 60) return `in ${mins} min`;
+  return `in ${Math.floor(mins / 60)} h ${mins % 60} min`;
+}
+function savedAt(ms) {
+  const d = new Date(ms);
+  const time = fmtPlain(d.getHours() * 60 + d.getMinutes());
+  return d.toDateString() === new Date().toDateString()
+    ? `at ${time} today`
+    : `on ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at ${time}`;
+}
+const stopsLabel = n => n === 0 ? "nonstop" : n === 1 ? "1 stop" : `${n} stops`;
+const chip = routeId => { const [cls, label] = kind(routeId); return `<span class="chip ${cls}">${esc(label)}</span>`; };
+
+const now0 = serviceNow();
+const hash = location.hash.replace("#", "");
+const state = {
+  dir: hash === "home" ? "home" : "work",
+  work: store("work"),
+  day: dayType(now0.dow),
+  showPast: false,
+  editing: false,
+};
+let setupFilled = false;
+
+const ready = () => !!(DATA && prefs && [prefs.home, ...prefs.works].every(n => DATA.stations.some(s => s.name === n)));
+const route = () => state.dir === "work" ? [prefs.home, state.work] : [state.work, prefs.home];
+
+// Trips from one station to another on a service day, using whichever direction's
+// table has them in travel order.
+function trips(from, to, day) {
+  for (const dir of Object.values(DATA.dirs)) {
+    const a = dir.stops.indexOf(from), b = dir.stops.indexOf(to);
+    if (a < 0 || b < 0 || a >= b) continue;
+    return dir.trips
+      .filter(t => t.s === day && t.t[a] != null && t.t[b] != null)
+      .map(t => ({ n: t.n, k: t.k, dep: t.t[a], arr: t.t[b], stops: t.t.slice(a + 1, b).filter(x => x != null).length }))
+      .sort((x, y) => x.dep - y.dep);
+  }
+  return [];
+}
+
+function renderControls() {
+  if (prefs && !prefs.works.includes(state.work)) state.work = prefs.works[0];
+  $("works").innerHTML = prefs
+    ? prefs.works.map(w => `<button type="button" data-work="${esc(w)}" aria-pressed="${w === state.work}">${esc(w)}</button>`).join("")
+    : "";
+  document.querySelectorAll("[data-work]").forEach(b => b.onclick = () => {
+    state.work = b.dataset.work; store("work", state.work); renderControls(); render();
+  });
+  document.querySelectorAll("[data-dir]").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === state.dir));
+  document.querySelectorAll("[data-day]").forEach(b => b.setAttribute("aria-pressed", b.dataset.day === state.day));
+}
+
+function fillSetup() {
+  const fill = (sel, blank, value) => {
+    sel.replaceChildren(new Option(blank, ""), ...DATA.stations.map(s => new Option(s.name, s.name)));
+    sel.value = value || "";
+  };
+  fill($("home-stn"), "Choose a station", prefs?.home);
+  fill($("work-stn-1"), "Choose a station", prefs?.works[0]);
+  fill($("work-stn-2"), "None", prefs?.works[1]);
+  $("setup-err").hidden = true;
+  $("cancel").hidden = !ready();
+  setupFilled = true;
+}
+
+function renderFooter() {
+  let text = "";
+  if (DATA && status.state === "live") {
+    text = `Timetable loaded from caltrain.com ${savedAt(DATA.at)}. Scheduled times only; delays aren't shown.`;
+  } else if (DATA && status.state === "checking") {
+    text = `Showing the timetable saved ${savedAt(DATA.at)}. Checking caltrain.com for changes…`;
+  } else if (DATA && status.state === "failed") {
+    text = `<span class="warn">${esc(status.msg)}.</span> Showing the timetable saved ${savedAt(DATA.at)}.`;
+  }
+  let link = "";
+  if (ready()) {
+    const [from, to] = route();
+    const id = n => DATA.stations.find(s => s.name === n)?.id;
+    if (id(from) && id(to)) {
+      link = ` <a href="https://www.caltrain.com/?service=${state.day}&active_tab=route_explorer_tab&origin=${id(from)}&destination=${id(to)}" target="_blank" rel="noopener">Open this trip on caltrain.com</a>`;
+    }
+  }
+  $("foot").innerHTML = `${text}${link} Not affiliated with Caltrain.`;
+}
+
+function render() {
+  const now = serviceNow();
+  const today = dayType(now.dow);
+  const isReady = ready();
+  const showSetup = !!DATA && (state.editing || !isReady);
+  if (showSetup && !setupFilled) fillSetup();
+  $("setup").hidden = !showSetup;
+  $("controls").hidden = !isReady || showSetup;
+  $("sign").hidden = showSetup;
+  $("list").hidden = !isReady || showSetup;
+  $("today").innerHTML = `<b>${now.label}</b> · ${fmtPlain(now.h * 60 + now.m)}`;
+  renderFooter();
+  if (showSetup) return;
+
+  const sign = $("sign");
+  if (!DATA) {
+    sign.innerHTML = status.state === "failed"
+      ? `<div class="domes"></div><div class="sign-body">
+           <div class="empty">Couldn't load the timetable</div>
+           <div class="meta">${esc(status.msg)}.</div>
+           <button class="retry" id="retry" type="button">Try again</button>
+         </div>`
+      : `<div class="domes"></div><div class="sign-body"><div class="empty">Loading timetable…</div></div>`;
+    const retry = $("retry");
+    if (retry) retry.onclick = refresh;
+    return;
+  }
+
+  const [from, to] = route();
+  const routeText = `${esc(from)} → ${esc(to)}`;
+  const isToday = state.day === today;
+  const list = trips(from, to, state.day);
+  const nextIdx = isToday ? list.findIndex(t => t.dep >= now.min) : -1;
+
+  if (!list.length) {
+    sign.innerHTML = `
+      <div class="domes"></div>
+      <div class="sign-body">
+        <span class="eyebrow">${routeText}</span>
+        <div class="empty">No ${state.day} trains stop at both stations</div>
+      </div>`;
+  } else if (isToday && nextIdx >= 0) {
+    const t = list[nextIdx];
+    const later = list.slice(nextIdx + 1, nextIdx + 3);
+    sign.innerHTML = `
+      <div class="domes"></div>
+      <div class="sign-body">
+        <div class="sign-top"><span class="eyebrow">Next train · ${routeText}</span><span class="count">${until(t.dep * 60 - now.sec)}</span></div>
+        <div class="legs">
+          <div><div class="t">${fmt(t.dep)}</div><div class="s">${esc(from)}</div></div>
+          <div class="track" aria-hidden="true">
+            <div class="dots">${"<i></i>".repeat(Math.min(t.stops, 12))}</div>
+            <div class="ride">${t.arr - t.dep} min</div>
+          </div>
+          <div class="end"><div class="t">${fmt(t.arr)}</div><div class="s">${esc(to)}</div></div>
+        </div>
+        <div class="meta">${chip(t.k)}<span>Train <b>${esc(t.n)}</b> · ${t.arr - t.dep} min ride · ${stopsLabel(t.stops)}</span></div>
+      </div>
+      ${later.length ? `<div class="after"><span>Then</span>${later.map(l =>
+        `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])} · ${until(l.dep * 60 - now.sec)}</span>`).join("")}</div>` : ""}`;
+  } else if (isToday) {
+    const tomorrow = (now.dow + 1) % 7;
+    const first = trips(from, to, dayType(tomorrow))[0];
+    sign.innerHTML = `
+      <div class="domes"></div>
+      <div class="sign-body">
+        <span class="eyebrow">${routeText}</span>
+        <div class="empty">No more trains tonight</div>
+        ${first ? `<div class="meta">First train ${DAY_NAMES[tomorrow]}: <b>${fmtPlain(first.dep)}</b> ${chip(first.k)} <span>Train ${esc(first.n)}</span></div>` : ""}
+      </div>`;
+  } else {
+    const first = list[0], last = list[list.length - 1];
+    sign.innerHTML = `
+      <div class="domes"></div>
+      <div class="sign-body">
+        <span class="eyebrow">${state.day === "weekend" ? "Weekend" : "Weekday"} schedule · ${routeText}</span>
+        <div class="meta">${list.length} trains · first <b>${fmtPlain(first.dep)}</b> · last <b>${fmtPlain(last.dep)}</b></div>
+      </div>`;
+  }
+
+  const pastCount = isToday ? (nextIdx < 0 ? list.length : nextIdx) : 0;
+  $("listNote").innerHTML = pastCount
+    ? `<button class="more" id="toggle-past" type="button" aria-expanded="${state.showPast}">${state.showPast ? "Hide" : "Show"} ${pastCount} earlier train${pastCount === 1 ? "" : "s"}</button>`
+    : "";
+  const btn = $("toggle-past");
+  if (btn) btn.onclick = () => { state.showPast = !state.showPast; render(); };
+
+  $("rows").innerHTML = list.map((t, i) => {
+    const past = i < pastCount;
+    if (past && !state.showPast) return "";
+    const cls = past ? "past" : i === nextIdx ? "next" : "";
+    return `<li class="${cls}">
+      <span class="dep">${fmt(t.dep)}</span>
+      <span class="arr">${fmt(t.arr)}</span>
+      <span class="ride">${t.arr - t.dep} min</span>
+      <span class="train">${chip(t.k)}<span class="num">${esc(t.n)}</span></span>
+    </li>`;
+  }).join("");
+}
+
+$("setup").onsubmit = e => {
+  e.preventDefault();
+  const home = $("home-stn").value, w1 = $("work-stn-1").value, w2 = $("work-stn-2").value;
+  const err = !home ? "Choose your home station."
+    : !w1 ? "Choose your work station."
+    : w1 === home || w2 === home ? "Home and work need to be different stations."
+    : w2 && w2 === w1 ? "Pick two different work stations, or set the second one to None."
+    : "";
+  $("setup-err").textContent = err;
+  $("setup-err").hidden = !err;
+  if (err) return;
+  prefs = { home, works: w2 ? [w1, w2] : [w1] };
+  store("stations", JSON.stringify(prefs));
+  state.editing = false;
+  setupFilled = false;
+  renderControls();
+  render();
+};
+$("cancel").onclick = () => { state.editing = false; setupFilled = false; render(); };
+$("edit").onclick = () => { state.editing = true; setupFilled = false; render(); };
+document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { state.dir = b.dataset.dir; state.showPast = false; renderControls(); render(); });
+document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { state.day = b.dataset.day; state.showPast = false; renderControls(); render(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
+});
+setInterval(() => { if (!state.editing) render(); }, 15000);
+renderControls();
+refresh();
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
