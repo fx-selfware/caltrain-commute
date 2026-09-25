@@ -113,6 +113,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   color: var(--muted);
 }
 .clock b { color: var(--ink); font-weight: 600; }
+#today { white-space: nowrap; }
 .seg {
   display: grid;
   grid-auto-flow: column;
@@ -161,24 +162,55 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   color: var(--sign-muted);
 }
 .count { font-size: 26px; font-weight: 800; color: var(--signal); line-height: 1; }
-.legs { display: grid; grid-template-columns: auto minmax(44px, 1fr) auto; align-items: center; gap: 10px; }
-.legs .t { font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
-.legs .t small, .rows small { font-size: .45em; font-weight: 600; margin-left: 2px; letter-spacing: .02em; }
-.legs .s { font-size: 13px; color: var(--sign-muted); margin-top: 6px; }
-.legs .end { text-align: right; }
-.track { position: relative; height: 34px; }
-.track::before {
+.itin .t small, .rows small { font-size: .45em; font-weight: 600; margin-left: 2px; letter-spacing: .02em; }
+/* Itinerary: the trip's stations top to bottom on one line. Rows share a height so the
+   line can run from the first mark's center to the last one's. */
+.itin { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; position: relative; }
+.itin::before {
   content: "";
   position: absolute;
-  left: 0; right: 0; top: 50%;
-  border-top: 2px solid var(--sign-muted);
+  left: 8px;
+  top: 20px;
+  bottom: 20px;
+  border-left: 2px solid var(--sign-muted);
 }
-.track .dots { position: absolute; inset: 0; display: flex; justify-content: space-evenly; align-items: center; }
-.track .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--sign-bg); border: 2px solid var(--sign-muted); }
-.track .ride {
-  position: absolute; left: 0; right: 0; top: calc(50% + 6px);
-  text-align: center; font-size: 12px; color: var(--sign-muted);
+.itin li {
+  display: grid;
+  grid-template-columns: 18px 6.8rem 1fr auto;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 40px;
 }
+.itin .mark {
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--sign-ink);
+  box-shadow: 0 0 0 4px var(--sign-bg);
+  position: relative;
+}
+.itin .t { font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+.itin .s { font-size: 15px; font-weight: 600; min-width: 0; }
+.itin .stop .t { font-size: 20px; font-weight: 700; }
+.itin .stop .mark { width: 11px; height: 11px; border-radius: 2px; transform: rotate(45deg); background: var(--signal); }
+.itin .tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 3px 6px 1px;
+  border-radius: 4px;
+  background: var(--signal);
+  color: #12181C;
+}
+.itin .skipped .mark { background: var(--sign-bg); border: 2px solid var(--sign-muted); }
+.itin .skipped .t, .itin .skipped .s { color: var(--sign-muted); }
+.itin .skipped .tag { background: transparent; color: var(--sign-muted); border: 1px solid var(--sign-muted); }
+.trip { display: grid; gap: 4px; }
+.trip-train { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.trip-train b { font-weight: 800; }
+.trip-stats { font-size: 13px; color: var(--sign-muted); }
 .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--sign-muted); }
 .meta b { color: var(--sign-ink); font-weight: 600; }
 .after {
@@ -223,6 +255,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 /* Timetable */
 /* Header and rows share one column set in rem, so it doesn't scale with each row's font size. */
 .list { --cols: 4.9rem 4.3rem 1fr auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
+/* Two work stations: one time column per station, in travel order. */
+.list.three { --cols: 4.4rem 4.4rem 4.4rem 1fr; }
 .list-head, .rows li {
   display: grid;
   grid-template-columns: var(--cols);
@@ -239,18 +273,27 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   color: var(--muted);
   border-bottom: 1px solid var(--line);
 }
+/* Station names as column heads: normal case so they fit, wrapping only between words. */
+.list.three .list-head { font-size: 12px; text-transform: none; letter-spacing: 0; }
 .list-head span:last-child { text-align: right; }
+.list-head .on { color: var(--ink); }
 .rows { list-style: none; margin: 0; padding: 0; }
 .rows li { padding-block: 11px 9px; border-bottom: 1px solid var(--line); }
 .rows li:last-child { border-bottom: 0; }
 .rows .dep { font-size: 20px; font-weight: 800; }
 .rows .arr { font-size: 17px; font-weight: 600; color: var(--muted); }
 .rows .ride { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.rows .via { font-size: 15px; color: var(--muted); }
+.rows .skip { opacity: .6; }
+.list.three .rows .dep { font-size: 18px; }
+.list.three .rows .arr { font-size: 16px; }
+.list.three .num { min-width: 0; }
 .rows .train { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
 .rows .num { font-size: 13px; color: var(--muted); min-width: 2.2em; text-align: right; }
 .rows li.past { opacity: .5; }
 .rows li.next { background: var(--next-bg); }
 .rows li.next .ride { color: var(--next-ink); font-weight: 600; }
+.day-note { padding: 11px 14px 9px; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
 .more {
   width: 100%;
   border: 0;
@@ -264,16 +307,19 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 }
 
 /* Station picker */
-.work-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-.edit {
+.clock-tools { display: flex; align-items: center; gap: 8px; flex: none; }
+.gear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 1px solid var(--line);
   background: transparent;
-  border-radius: 10px;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: 8px;
   color: var(--muted);
 }
+.gear:hover { color: var(--ink); }
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -286,7 +332,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .panel h2 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.2; text-wrap: balance; }
 .panel p { margin: 0; color: var(--muted); font-size: 13px; }
 .field { display: grid; gap: 6px; }
-.field label {
+.field label, .field .label {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .08em;
@@ -335,6 +381,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   padding: 11px 16px 9px;
   color: var(--muted);
 }
+.field select:disabled { opacity: .55; }
+.field .hint { margin: 0; color: var(--muted); font-size: 12px; }
 .panel .err { color: var(--warn); font-weight: 600; font-size: 14px; }
 
 footer { font-size: 12px; color: var(--muted); line-height: 1.5; }
@@ -342,15 +390,25 @@ footer a { color: var(--ink); }
 footer .warn { color: var(--warn); font-weight: 600; }
 
 @media (max-width: 380px) {
-  .legs .t { font-size: 31px; }
+  .itin li { grid-template-columns: 18px 6rem 1fr auto; column-gap: 10px; }
+  .itin .t { font-size: 26px; }
   .list { --cols: 4.6rem 4rem 1fr auto; }
+  .list.three { --cols: 4.2rem 4.2rem 4.2rem 1fr; }
   .list-head, .rows li { padding-inline: 12px; gap: 6px; }
 }
 @media (max-width: 350px) {
-  .legs { grid-template-columns: auto minmax(28px, 1fr) auto; gap: 6px; }
-  .legs .t { font-size: 26px; }
+  .itin li { grid-template-columns: 18px 5.2rem 1fr auto; }
+  .itin .t { font-size: 22px; }
+  .itin .stop .t { font-size: 17px; }
   .list { --cols: 4.6rem 4rem 1fr; }
-  .list-head span:nth-child(3), .rows .ride { display: none; }
+  .ride-h, .rows .ride { display: none; }
+  .clock .wd { display: none; }
+  .list.three { --cols: 3.8rem 3.8rem 3.8rem 1fr; }
+  .list.three .num { display: none; }
+  .list.three .chip { font-size: 10px; letter-spacing: .03em; padding-inline: 4px; }
+  .list.three .rows .dep { font-size: 15px; }
+  .list.three .rows .arr { font-size: 14px; }
+  .list.three .rows .via { font-size: 13px; }
 }
 </style>
 </head>
@@ -359,35 +417,42 @@ footer .warn { color: var(--warn); font-weight: 600; }
   <div class="controls" id="controls" hidden>
     <div class="clock">
       <span id="today"></span>
-      <div class="seg small" role="group" aria-label="Schedule">
-        <button id="day-weekday" data-day="weekday" aria-pressed="false">Weekday</button>
-        <button id="day-weekend" data-day="weekend" aria-pressed="false">Weekend</button>
+      <div class="clock-tools">
+        <div class="seg small" role="group" aria-label="Schedule">
+          <button id="day-weekday" data-day="weekday" aria-pressed="false">Weekday</button>
+          <button id="day-weekend" data-day="weekend" aria-pressed="false">Weekend</button>
+        </div>
+        <button class="gear" id="edit" type="button" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M19.37 10.16 L22.50 10.52 L22.50 13.48 L19.37 13.84 L18.51 15.91 L20.47 18.38 L18.38 20.47 L15.91 18.51 L13.84 19.37 L13.48 22.50 L10.52 22.50 L10.16 19.37 L8.09 18.51 L5.62 20.47 L3.53 18.38 L5.49 15.91 L4.63 13.84 L1.50 13.48 L1.50 10.52 L4.63 10.16 L5.49 8.09 L3.53 5.62 L5.62 3.53 L8.09 5.49 L10.16 4.63 L10.52 1.50 L13.48 1.50 L13.84 4.63 L15.91 5.49 L18.38 3.53 L20.47 5.62 L18.51 8.09 Z M15.4 12 A3.4 3.4 0 1 0 8.6 12 A3.4 3.4 0 1 0 15.4 12 Z"/></svg></button>
       </div>
     </div>
     <div class="seg big" role="group" aria-label="Direction">
       <button id="dir-work" data-dir="work" aria-pressed="false">Work</button>
       <button id="dir-home" data-dir="home" aria-pressed="false">Home</button>
     </div>
-    <div class="work-row">
-      <div class="seg" role="group" aria-label="Work station" id="works"></div>
-      <button class="edit" id="edit">Stations</button>
-    </div>
   </div>
 
   <form class="panel" id="setup" hidden aria-labelledby="setup-title" novalidate>
-    <h2 id="setup-title">Your stations</h2>
+    <h2 id="setup-title">Settings</h2>
     <p>Saved only in this browser. The page downloads the whole Caltrain timetable and picks out your trains itself.</p>
     <div class="field">
       <label for="home-stn">Home</label>
       <span class="select"><select id="home-stn"></select></span>
     </div>
     <div class="field">
-      <label for="work-stn-1">Work</label>
-      <span class="select"><select id="work-stn-1"></select></span>
+      <label for="work-stn">Work</label>
+      <span class="select"><select id="work-stn"></select></span>
     </div>
     <div class="field">
-      <label for="work-stn-2">Second work station (optional)</label>
-      <span class="select"><select id="work-stn-2"></select></span>
+      <label for="stop-stn">Stop on the way (optional)</label>
+      <span class="select"><select id="stop-stn" aria-describedby="stop-hint"></select></span>
+      <p class="hint" id="stop-hint"></p>
+    </div>
+    <div class="field">
+      <span class="label" id="clock-label">Time format</span>
+      <div class="seg" role="group" aria-labelledby="clock-label">
+        <button type="button" data-clock="12" aria-pressed="false">12-hour</button>
+        <button type="button" data-clock="24" aria-pressed="false">24-hour</button>
+      </div>
     </div>
     <p class="err" id="setup-err" role="alert" hidden></p>
     <div class="actions">
@@ -399,7 +464,7 @@ footer .warn { color: var(--warn); font-weight: 600; }
   <section class="sign" id="sign" aria-label="Next train"></section>
 
   <section class="list" id="list" aria-label="Timetable" hidden>
-    <div class="list-head"><span>Depart</span><span>Arrive</span><span>Ride</span><span>Train</span></div>
+    <div class="list-head" id="listHead"></div>
     <div id="listNote"></div>
     <ol class="rows" id="rows"></ol>
   </section>
@@ -483,7 +548,7 @@ function readCache() {
 function readPrefs() {
   try {
     const p = JSON.parse(store("stations"));
-    if (p && typeof p.home === "string" && Array.isArray(p.works) && p.works.length) return p;
+    if (p && typeof p.home === "string" && (typeof p.work === "string" || (Array.isArray(p.works) && p.works.length))) return p;
   } catch (e) {}
   return null;
 }
@@ -524,13 +589,25 @@ function serviceNow() {
   let dow = DAYS.indexOf(get("weekday"));
   let sec = h * 3600 + m * 60 + s;
   if (h < 3) { dow = (dow + 6) % 7; sec += 86400; }
-  return { dow, sec, min: Math.floor(sec / 60), label: `${get("weekday")}, ${get("month")} ${get("day")}`, h, m };
+  return { dow, sec, min: Math.floor(sec / 60), weekday: get("weekday"), date: `${get("month")} ${get("day")}`, h, m };
 }
 const dayType = dow => (dow === 0 || dow === 6) ? "weekend" : "weekday";
 
+// 12- or 24-hour clock, saved in the browser. Defaults to the device's regional setting.
+function defaultClock() {
+  try {
+    const hc = new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hourCycle;
+    return hc === "h23" || hc === "h24" ? "24" : "12";
+  } catch (e) { return "12"; }
+}
+let clock = ["12", "24"].includes(store("clock")) ? store("clock") : defaultClock();
+let draftClock = clock;
+
 function fmt(min) {
-  const h = Math.floor(min / 60) % 24, m = min % 60;
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")}<small>${h < 12 ? "am" : "pm"}</small>`;
+  const h = Math.floor(min / 60) % 24, m = String(min % 60).padStart(2, "0");
+  return clock === "24"
+    ? `${String(h).padStart(2, "0")}:${m}`
+    : `${h % 12 || 12}:${m}<small>${h < 12 ? "am" : "pm"}</small>`;
 }
 function fmtPlain(min) { return fmt(min).replace(/<[^>]+>/g, ""); }
 function until(sec) {
@@ -547,13 +624,19 @@ function savedAt(ms) {
     : `on ${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at ${time}`;
 }
 const stopsLabel = n => n === 0 ? "nonstop" : n === 1 ? "1 stop" : `${n} stops`;
+// One row of the next-train itinerary. The stop gets a diamond and a tag.
+function itinRow(time, name, stop) {
+  if (!stop) return `<li><span class="mark"></span><span class="t">${fmt(time)}</span><span class="s">${esc(name)}</span></li>`;
+  return time == null
+    ? `<li class="stop skipped"><span class="mark"></span><span class="t">—</span><span class="s">${esc(name)}</span><span class="tag">Skips</span></li>`
+    : `<li class="stop"><span class="mark"></span><span class="t">${fmt(time)}</span><span class="s">${esc(name)}</span><span class="tag">Stop</span></li>`;
+}
 const chip = routeId => { const [cls, label] = kind(routeId); return `<span class="chip ${cls}">${esc(label)}</span>`; };
 
 const now0 = serviceNow();
 const hash = location.hash.replace("#", "");
 const state = {
   dir: hash === "home" ? "home" : "work",
-  work: store("work"),
   day: dayType(now0.dow),
   dayPinned: false,
   showPast: false,
@@ -561,47 +644,104 @@ const state = {
 };
 let setupFilled = false;
 
-const ready = () => !!(DATA && prefs && [prefs.home, ...prefs.works].every(n => DATA.stations.some(s => s.name === n)));
-const route = () => state.dir === "work" ? [prefs.home, state.work] : [state.work, prefs.home];
+const known = name => DATA.stations.some(s => s.name === name);
+const ready = () => !!(DATA && prefs && !prefs.works && known(prefs.home) && known(prefs.work) &&
+  (!prefs.stop || between(prefs.home, prefs.work, prefs.stop)));
+const route = () => state.dir === "work" ? [prefs.home, prefs.work] : [prefs.work, prefs.home];
+let upcomingDayType = dayType(now0.dow);
 
-// Trips from one station to another on a service day, using whichever direction's
-// table has them in travel order.
-function trips(from, to, day) {
+// The service day whose trains come next. Once the day's last train has left (say
+// 12:30am, before the 3am cutoff), that's the following day, whose times then count
+// from the next midnight: `offset` minutes later on the current service clock.
+function upcomingDay(now) {
+  const [from, to] = route();
+  const todays = trips(from, to, dayType(now.dow));
+  return todays.length && todays[todays.length - 1].dep < now.min
+    ? { dow: (now.dow + 1) % 7, offset: 1440 }
+    : { dow: now.dow, offset: 0 };
+}
+
+// The direction table in which `from` comes before `to`, with both stations' rows.
+function leg(from, to) {
   for (const dir of Object.values(DATA.dirs)) {
     const a = dir.stops.indexOf(from), b = dir.stops.indexOf(to);
-    if (a < 0 || b < 0 || a >= b) continue;
-    return dir.trips
-      .filter(t => t.s === day && t.t[a] != null && t.t[b] != null)
-      .map(t => ({ n: t.n, k: t.k, dep: t.t[a], arr: t.t[b], stops: t.t.slice(a + 1, b).filter(x => x != null).length }))
-      .sort((x, y) => x.dep - y.dep);
+    if (a >= 0 && b >= 0 && a < b) return { dir, a, b };
   }
-  return [];
+  return null;
+}
+
+// Trips from one station to another on a service day. `at` has each trip's time at
+// every station in `show`, or null where it doesn't stop.
+function trips(from, to, day, show = []) {
+  const l = leg(from, to);
+  if (!l) return [];
+  const { dir, a, b } = l;
+  const rows = show.map(name => [name, dir.stops.indexOf(name)]);
+  return dir.trips
+    .filter(t => t.s === day && t.t[a] != null && t.t[b] != null)
+    .map(t => ({
+      n: t.n, k: t.k, dep: t.t[a], arr: t.t[b],
+      stops: t.t.slice(a + 1, b).filter(x => x != null).length,
+      at: Object.fromEntries(rows.map(([name, i]) => [name, t.t[i] ?? null])),
+    }))
+    .sort((x, y) => x.dep - y.dep);
+}
+
+// Whether `stop` lies strictly between home and work on the line.
+function between(home, work, stop) {
+  const l = leg(home, work) || leg(work, home);
+  if (!l) return false;
+  const i = l.dir.stops.indexOf(stop);
+  return i > l.a && i < l.b;
+}
+
+// With a stop set, the table has a column for each station in travel order.
+const columns = (from, to) => prefs.stop ? [from, prefs.stop, to] : null;
+
+// Settings saved by the earlier version held up to two work stations. Keep the
+// farther one as work and the nearer one as the stop when it's on the way.
+function migratePrefs() {
+  if (!DATA || !prefs?.works) return;
+  const [a, b] = prefs.works;
+  prefs = b && between(prefs.home, b, a) ? { home: prefs.home, work: b, stop: a }
+    : b && between(prefs.home, a, b) ? { home: prefs.home, work: a, stop: b }
+    : { home: prefs.home, work: a, stop: null };
+  store("stations", JSON.stringify(prefs));
+  try { localStorage.removeItem("commute.work"); } catch (e) {}
 }
 
 function renderControls() {
-  if (prefs && !prefs.works.includes(state.work)) state.work = prefs.works[0];
-  $("works").innerHTML = prefs
-    ? prefs.works.map(w => `<button type="button" data-work="${esc(w)}" aria-pressed="${w === state.work}">${esc(w)}</button>`).join("")
-    : "";
-  document.querySelectorAll("[data-work]").forEach(b => b.onclick = () => {
-    state.work = b.dataset.work; store("work", state.work); renderControls(); render();
-  });
   document.querySelectorAll("[data-dir]").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === state.dir));
   document.querySelectorAll("[data-day]").forEach(b => b.setAttribute("aria-pressed", b.dataset.day === state.day));
 }
 
+const byName = () => [...DATA.stations].sort((a, b) => a.name.localeCompare(b.name));
+
 function fillSetup() {
-  const byName = [...DATA.stations].sort((a, b) => a.name.localeCompare(b.name));
-  const fill = (sel, blank, value) => {
-    sel.replaceChildren(new Option(blank, ""), ...byName.map(s => new Option(s.name, s.name)));
+  const fill = (sel, value) => {
+    sel.replaceChildren(new Option("Choose a station", ""), ...byName().map(s => new Option(s.name, s.name)));
     sel.value = value || "";
   };
-  fill($("home-stn"), "Choose a station", prefs?.home);
-  fill($("work-stn-1"), "Choose a station", prefs?.works[0]);
-  fill($("work-stn-2"), "None", prefs?.works[1]);
+  fill($("home-stn"), prefs?.home);
+  fill($("work-stn"), prefs?.work);
+  fillStops(prefs?.stop);
+  draftClock = clock;
+  document.querySelectorAll("[data-clock]").forEach(b => b.setAttribute("aria-pressed", b.dataset.clock === draftClock));
   $("setup-err").hidden = true;
   $("cancel").hidden = !ready();
   setupFilled = true;
+}
+
+// The stop list only offers stations between the chosen home and work.
+function fillStops(value) {
+  const home = $("home-stn").value, work = $("work-stn").value, sel = $("stop-stn");
+  const options = home && work && home !== work ? byName().filter(s => between(home, work, s.name)) : [];
+  sel.replaceChildren(new Option("None", ""), ...options.map(s => new Option(s.name, s.name)));
+  sel.value = options.some(s => s.name === value) ? value : "";
+  sel.disabled = !options.length;
+  $("stop-hint").textContent = !home || !work || home === work ? "Choose home and work first."
+    : options.length ? "A station between home and work. It gets its own column in the timetable."
+    : "There are no stations between home and work.";
 }
 
 function renderFooter() {
@@ -626,17 +766,20 @@ function renderFooter() {
 
 function render() {
   const now = serviceNow();
-  const today = dayType(now.dow);
-  // Follow the service day (e.g. past 3am into Saturday) unless the viewer picked another one.
-  if (!state.dayPinned && state.day !== today) { state.day = today; state.showPast = false; renderControls(); }
+  migratePrefs();
   const isReady = ready();
+  const svc = isReady ? upcomingDay(now) : { dow: now.dow, offset: 0 };
+  const today = upcomingDayType = dayType(svc.dow);
+  // Follow the day whose trains come next (e.g. into Saturday after Friday's last
+  // train) unless the viewer picked another one.
+  if (!state.dayPinned && state.day !== today) { state.day = today; state.showPast = false; renderControls(); }
   const showSetup = !!DATA && (state.editing || !isReady);
   if (showSetup && !setupFilled) fillSetup();
   $("setup").hidden = !showSetup;
   $("controls").hidden = !isReady || showSetup;
   $("sign").hidden = showSetup;
   $("list").hidden = !isReady || showSetup;
-  $("today").innerHTML = `<b>${now.label}</b> · ${fmtPlain(now.h * 60 + now.m)}`;
+  $("today").innerHTML = `<b><span class="wd">${now.weekday}, </span>${now.date}</b> · ${fmtPlain(now.h * 60 + now.m)}`;
   renderFooter();
   if (showSetup) return;
 
@@ -657,8 +800,10 @@ function render() {
   const [from, to] = route();
   const routeText = `${esc(from)} → ${esc(to)}`;
   const isToday = state.day === today;
-  const list = trips(from, to, state.day);
-  const nextIdx = isToday ? list.findIndex(t => t.dep >= now.min) : -1;
+  const cols = columns(from, to);
+  const list = trips(from, to, state.day, cols || []);
+  const nextIdx = isToday ? list.findIndex(t => t.dep + svc.offset >= now.min) : -1;
+  const wait = t => until((t.dep + svc.offset) * 60 - now.sec);
 
   if (!list.length) {
     sign.innerHTML = `
@@ -673,21 +818,21 @@ function render() {
     sign.innerHTML = `
       <div class="domes"></div>
       <div class="sign-body">
-        <div class="sign-top"><span class="eyebrow">Next train · ${routeText}</span><span class="count">${until(t.dep * 60 - now.sec)}</span></div>
-        <div class="legs">
-          <div><div class="t">${fmt(t.dep)}</div><div class="s">${esc(from)}</div></div>
-          <div class="track" aria-hidden="true">
-            <div class="dots">${"<i></i>".repeat(Math.min(t.stops, 12))}</div>
-            <div class="ride">${t.arr - t.dep} min</div>
-          </div>
-          <div class="end"><div class="t">${fmt(t.arr)}</div><div class="s">${esc(to)}</div></div>
+        <div class="sign-top"><span class="eyebrow">Next train${svc.offset ? ` · ${DAY_NAMES[svc.dow]}` : ""}</span><span class="count">${wait(t)}</span></div>
+        <ol class="itin" aria-label="${routeText}">
+          ${itinRow(t.dep, from)}
+          ${prefs.stop ? itinRow(t.at[prefs.stop], prefs.stop, true) : ""}
+          ${itinRow(t.arr, to)}
+        </ol>
+        <div class="trip">
+          <div class="trip-train">${chip(t.k)}<span>Train <b>${esc(t.n)}</b></span></div>
+          <div class="trip-stats">${t.arr - t.dep} min ride · ${stopsLabel(t.stops)}</div>
         </div>
-        <div class="meta">${chip(t.k)}<span>Train <b>${esc(t.n)}</b> · ${t.arr - t.dep} min ride · ${stopsLabel(t.stops)}</span></div>
       </div>
       ${later.length ? `<div class="after"><span>Then</span>${later.map(l =>
-        `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])} · ${until(l.dep * 60 - now.sec)}</span>`).join("")}</div>` : ""}`;
+        `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])} · ${wait(l)}</span>`).join("")}</div>` : ""}`;
   } else if (isToday) {
-    const tomorrow = (now.dow + 1) % 7;
+    const tomorrow = (svc.dow + 1) % 7;
     const first = trips(from, to, dayType(tomorrow))[0];
     sign.innerHTML = `
       <div class="domes"></div>
@@ -707,49 +852,63 @@ function render() {
   }
 
   const pastCount = isToday ? (nextIdx < 0 ? list.length : nextIdx) : 0;
-  $("listNote").innerHTML = pastCount
+  $("listNote").innerHTML = isToday && svc.offset
+    ? `<div class="day-note">${DAY_NAMES[svc.dow]}'s trains</div>`
+    : pastCount
     ? `<button class="more" id="toggle-past" type="button" aria-expanded="${state.showPast}">${state.showPast ? "Hide" : "Show"} ${pastCount} earlier train${pastCount === 1 ? "" : "s"}</button>`
     : "";
   const btn = $("toggle-past");
   if (btn) btn.onclick = () => { state.showPast = !state.showPast; render(); };
 
+  $("list").classList.toggle("three", !!cols);
+  $("listHead").innerHTML = cols
+    ? cols.map(name => `<span class="${name === from || name === to ? "on" : ""}">${esc(name)}</span>`).join("") + "<span>Train</span>"
+    : `<span>Depart</span><span>Arrive</span><span class="ride-h">Ride</span><span>Train</span>`;
+  const role = name => name === from ? "dep" : name === to ? "arr" : "via";
   $("rows").innerHTML = list.map((t, i) => {
     const past = i < pastCount;
     if (past && !state.showPast) return "";
     const cls = past ? "past" : i === nextIdx ? "next" : "";
-    return `<li class="${cls}">
-      <span class="dep">${fmt(t.dep)}</span>
-      <span class="arr">${fmt(t.arr)}</span>
-      <span class="ride">${t.arr - t.dep} min</span>
-      <span class="train">${chip(t.k)}<span class="num">${esc(t.n)}</span></span>
-    </li>`;
+    const times = cols
+      ? cols.map(name => t.at[name] == null
+          ? `<span class="${role(name)} skip" aria-label="doesn't stop">—</span>`
+          : `<span class="${role(name)}">${fmt(t.at[name])}</span>`).join("")
+      : `<span class="dep">${fmt(t.dep)}</span><span class="arr">${fmt(t.arr)}</span><span class="ride">${t.arr - t.dep} min</span>`;
+    return `<li class="${cls}">${times}<span class="train">${chip(t.k)}<span class="num">${esc(t.n)}</span></span></li>`;
   }).join("");
 }
 
 $("setup").onsubmit = e => {
   e.preventDefault();
-  const home = $("home-stn").value, w1 = $("work-stn-1").value, w2 = $("work-stn-2").value;
+  const home = $("home-stn").value, work = $("work-stn").value, stop = $("stop-stn").value || null;
   const err = !home ? "Choose your home station."
-    : !w1 ? "Choose your work station."
-    : w1 === home || w2 === home ? "Home and work need to be different stations."
-    : w2 && w2 === w1 ? "Pick two different work stations, or set the second one to None."
+    : !work ? "Choose your work station."
+    : work === home ? "Home and work need to be different stations."
+    : stop && !between(home, work, stop) ? `The stop has to be between ${home} and ${work}.`
     : "";
   $("setup-err").textContent = err;
   $("setup-err").hidden = !err;
   if (err) return;
-  prefs = { home, works: w2 ? [w1, w2] : [w1] };
+  prefs = { home, work, stop };
   store("stations", JSON.stringify(prefs));
+  clock = draftClock;
+  store("clock", clock);
   state.editing = false;
   setupFilled = false;
   renderControls();
   render();
 };
+document.querySelectorAll("[data-clock]").forEach(b => b.onclick = () => {
+  draftClock = b.dataset.clock;
+  document.querySelectorAll("[data-clock]").forEach(x => x.setAttribute("aria-pressed", x.dataset.clock === draftClock));
+});
+$("home-stn").onchange = $("work-stn").onchange = () => fillStops($("stop-stn").value);
 $("cancel").onclick = () => { state.editing = false; setupFilled = false; render(); };
 $("edit").onclick = () => { state.editing = true; setupFilled = false; render(); };
 document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { state.dir = b.dataset.dir; state.showPast = false; renderControls(); render(); });
 document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => {
   state.day = b.dataset.day;
-  state.dayPinned = state.day !== dayType(serviceNow().dow);
+  state.dayPinned = state.day !== upcomingDayType;
   state.showPast = false; renderControls(); render();
 });
 document.addEventListener("visibilitychange", () => {
