@@ -5,6 +5,8 @@ const path = require("path");
 
 const FIXTURE = fs.readFileSync(path.join(__dirname, "..", "fixtures", "timetable.html"), "utf8");
 const SOURCE = "https://www.caltrain.com/**";
+// Every fake caltrain.com response carries this header, so a real one stands out.
+const FAKE = "x-test-fixture";
 
 // Scenarios name days of the week of Monday, September 21, 2026.
 const DATES = {
@@ -42,7 +44,7 @@ async function serveTimetable(page, { body = FIXTURE, status = 200, fail = false
     await wait;
     return fail
       ? route.abort("internetdisconnected")
-      : route.fulfill({ status, body, contentType: "text/html", headers: { "access-control-allow-origin": "*" } });
+      : route.fulfill({ status, body, contentType: "text/html", headers: { "access-control-allow-origin": "*", [FAKE]: "1" } });
   });
 }
 
@@ -74,4 +76,4 @@ const rowNumbers = page => page.locator("#rows .num").allTextContents();
 const itinerary = page => page.locator("#sign .itin li").evaluateAll(lis => lis.map(li =>
   [...li.querySelectorAll(".t, .s, .tag")].map(el => el.textContent.trim())));
 
-module.exports = { FIXTURE, moment, nextAt, serveTimetable, open, now, row, rowNumbers, itinerary };
+module.exports = { FIXTURE, FAKE, moment, nextAt, serveTimetable, open, now, row, rowNumbers, itinerary };
