@@ -36,7 +36,8 @@ After you change a file, reload twice: the service worker serves the cached vers
 | `index.html` | The whole app: timetable download and parsing, station picker, and layout |
 | `sw.js` | Service worker that caches the app, including its fonts, for offline use |
 | `manifest.webmanifest` | App name, colors, and icons for installing |
-| `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons |
+| `icon.svg` | Icon source: a train front on a platform-edge warning strip |
+| `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons rendered from `icon.svg` |
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
 
 ## Disclaimer

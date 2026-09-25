@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#12181C"/>
+  <!-- Train front: body, windshield, livery band, headlights -->
+  <rect x="146" y="100" width="220" height="258" rx="52" fill="#F3F5F6"/>
+  <rect x="172" y="132" width="168" height="104" rx="20" fill="#12181C"/>
+  <rect x="146" y="262" width="220" height="16" fill="#CE202F"/>
+  <circle cx="192" cy="314" r="17" fill="#F4C21B"/>
+  <circle cx="320" cy="314" r="17" fill="#F4C21B"/>
+  <!-- Platform-edge warning strip with raised domes -->
+  <rect x="120" y="376" width="272" height="34" rx="8" fill="#F4C21B"/>
+  <g fill="#B8921A">
+    <circle cx="141" cy="393" r="6"/>
+    <circle cx="174" cy="393" r="6"/>
+    <circle cx="207" cy="393" r="6"/>
+    <circle cx="240" cy="393" r="6"/>
+    <circle cx="273" cy="393" r="6"/>
+    <circle cx="306" cy="393" r="6"/>
+    <circle cx="339" cy="393" r="6"/>
+    <circle cx="372" cy="393" r="6"/>
+  </g>
+</svg>

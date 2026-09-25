@@ -1,7 +1,7 @@
 // Offline support: the app shell comes from the cache right away and is refreshed
 // in the background, so a new version shows up on the next launch. caltrain.com
 // requests go straight to the network; the page keeps its own saved timetable.
-const CACHE = "commute-v2";
+const CACHE = "commute-v3";
 const SHELL = [
   "./", "manifest.webmanifest", "apple-touch-icon.png", "icon-192.png", "icon-512.png",
   "fonts/overpass-latin-400.woff2", "fonts/overpass-latin-600.woff2", "fonts/overpass-latin-800.woff2",
