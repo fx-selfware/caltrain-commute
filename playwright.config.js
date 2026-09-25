@@ -28,7 +28,8 @@ module.exports = defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Pixel 7"] } },
-    { name: "webkit", use: { ...devices["iPhone 13"] } },
+    // Scenarios tagged @chromium-only need something Playwright's WebKit can't do.
+    { name: "webkit", use: { ...devices["iPhone 13"] }, grepInvert: /@chromium-only/ },
   ],
   webServer: {
     command: `python3 -m http.server ${PORT}`,

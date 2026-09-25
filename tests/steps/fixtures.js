@@ -12,4 +12,8 @@ exports.test = base.extend({
     const tag = $tags.find(t => /^@[a-z]{2}-[A-Z]{2}$/.test(t));
     await use(tag ? tag.slice(1) : locale);
   },
+  // Scenarios tagged @service-worker run with the app's offline copy; the rest block it.
+  serviceWorkers: async ({ $tags, serviceWorkers }, use) => {
+    await use($tags.includes("@service-worker") ? "allow" : serviceWorkers);
+  },
 });

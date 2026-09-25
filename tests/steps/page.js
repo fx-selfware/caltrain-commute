@@ -5,6 +5,11 @@ const { test } = require("./fixtures");
 
 const { Then } = createBdd(test);
 
+Then("I see the stand-in timetable, not the app", async ({ page }) => {
+  await expect(page.locator('select[name="filter_origin"]')).toHaveCount(1);
+  await expect(page.locator("#sign")).toHaveCount(0);
+});
+
 Then("I'm asked to choose my stations", async ({ page }) => {
   await expect(page.locator("#setup")).toBeVisible();
   await expect(page.locator("#controls")).toBeHidden();

@@ -1,7 +1,7 @@
 // When: opening the app, tapping, typing, scrolling, and time passing.
 const { createBdd } = require("playwright-bdd");
 const { test } = require("./fixtures");
-const { open, now, nextAt, row } = require("../support/app");
+const { open, now, nextAt, row, serveTimetable } = require("../support/app");
 
 const { When } = createBdd(test);
 
@@ -15,6 +15,20 @@ When("I open the app with {string} in the address", async ({ page, app }, hash) 
 
 When("I reload the app", async ({ page }) => {
   await page.reload();
+});
+
+When("I open the app again", async ({ page }) => {
+  await page.goto("/");
+});
+
+When("I open {string} on the same site", async ({ page }, path) => {
+  await page.goto("/" + path);
+});
+
+// The fake caltrain.com answers before the network is consulted, so take it down too.
+When("I go offline", async ({ page }) => {
+  await page.context().setOffline(true);
+  await serveTimetable(page, { fail: true });
 });
 
 When("caltrain.com answers", async ({ app }) => {

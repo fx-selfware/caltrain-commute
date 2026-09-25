@@ -24,6 +24,8 @@ The tests are BDD scenarios in Gherkin, run by Playwright through [playwright-bd
 - Tests never contact caltrain.com. `tests/fixtures/timetable.html` stands in for it, with the same markup the page parses; the comment at its top lists every train.
 - `npm test` generates Playwright tests into `.features-gen/` (ignored by git) first.
 - Steps check what the viewer sees (text, `aria-pressed`, classes on rows), not internal state.
+- Scenarios run with the service worker blocked, so no cached copy leaks between steps. Tag a scenario `@service-worker` to run it with the worker, as `tests/features/offline.feature` does.
+- `@chromium-only` skips a scenario in WebKit, for things Playwright's WebKit can't do (such as loading pages while offline). Say why in a comment above the tag.
 
 ## Conventions
 
