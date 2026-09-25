@@ -30,6 +30,16 @@ Then open http://localhost:8765. The service worker only runs on `localhost` or 
 
 After you change a file, reload twice: the service worker serves the cached version first and picks up the new one in the background.
 
+## Tests
+
+```sh
+npm install
+npx playwright install chromium webkit   # first time only
+npm test
+```
+
+The tests load `index.html` in a phone-sized Chromium and WebKit (as on an iPhone) with [Playwright](https://playwright.dev). They don't contact caltrain.com: `tests/fixtures/timetable.html` stands in for its timetable, and each test sets the clock to a fixed Pacific time. The app itself still has no dependencies; `package.json` is only for the tests.
+
 ## Files
 
 | File | Purpose |
@@ -40,6 +50,8 @@ After you change a file, reload twice: the service worker serves the cached vers
 | `icon.svg` | Icon source: a train front on a platform-edge warning strip |
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons rendered from `icon.svg` |
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
+| `tests/`, `playwright.config.js`, `package.json` | Browser tests and their fake caltrain.com timetable |
+| `CLAUDE.md` | Commands and conventions for coding agents |
 
 ## Disclaimer
 
