@@ -61,5 +61,7 @@ Then("train {int} has keyboard focus", async ({ page }, n) => {
 });
 
 Then("train {int} is still in the same place on screen", async ({ page, app }, n) => {
+  // Let animation frames and any delayed browser scroll anchoring settle first.
+  await page.clock.runFor(32);
   expect(Math.abs((await row(page, n).boundingBox()).y - app.noted.y)).toBeLessThan(1);
 });

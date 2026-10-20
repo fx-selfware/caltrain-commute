@@ -83,6 +83,8 @@ body {
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
   -webkit-text-size-adjust: 100%;
+  /* Row restoration owns scroll anchoring, including changes above the table. */
+  overflow-anchor: none;
 }
 .wrap {
   max-width: 480px;
@@ -98,9 +100,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 
 /* Controls */
 .controls {
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
-  z-index: 2;
   background: var(--bg);
   padding-block: 14px 10px;
   display: grid;
@@ -268,8 +267,19 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 
 /* Timetable */
 /* Header and rows share one column set in rem, so it doesn't scale with each row's font size. */
-.list { --cols: 4.9rem 4.3rem 1fr auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); overflow: hidden; }
-/* Two work stations: one time column per station, in travel order. */
+.list { --cols: 4.9rem 4.3rem 1fr auto; background: var(--surface); border-radius: 14px; border: 1px solid var(--line); }
+/* No overflow ancestor: the header sticks to the viewport, within the full list. */
+.list-header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 2;
+  background: var(--surface);
+  border-radius: 13px 13px 0 0;
+}
+/* With no rows, the header is also the bottom of the rounded table. */
+.list:has(.rows:empty) .list-header { border-radius: 13px; }
+.list:has(.rows:empty) .list-head { border-bottom: 0; }
+/* Optional stop: one time column per station, in travel order. */
 .list.three { --cols: 4.4rem 4.4rem 4.4rem 1fr; }
 .list-head, .rows button {
   display: grid;
@@ -294,6 +304,7 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .rows { list-style: none; margin: 0; padding: 0; }
 .rows li { border-bottom: 1px solid var(--line); }
 .rows li:last-child { border-bottom: 0; }
+.rows li:last-child, .rows li:last-child button { border-radius: 0 0 13px 13px; }
 /* Each row is a button that shows its train on the card. */
 .rows button {
   width: 100%;
@@ -325,12 +336,19 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   border: 0;
   border-bottom: 1px solid var(--line);
   background: transparent;
-  padding: 11px 14px 9px;
+  padding: 6px 14px;
+  min-height: 48px;
+  display: grid;
+  align-content: center;
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
   text-align: left;
 }
+.more:focus-visible { outline-offset: -3px; }
+.past-hint { font-size: 11px; font-weight: 400; }
+/* Reserve the hint line only while an action exists, so toggling never resizes it. */
+.more[aria-expanded="false"] .past-hint { visibility: hidden; }
 
 /* Station picker */
 .clock-tools { display: flex; align-items: center; gap: 8px; flex: none; }
@@ -508,7 +526,13 @@ footer .warn { color: var(--warn); font-weight: 600; }
   <section class="sign" id="sign" aria-label="Next train" tabindex="-1"></section>
 
   <section class="list" id="list" aria-label="Timetable" hidden>
-    <div class="list-head" id="listHead"></div>
+    <div class="list-header" id="listHeader">
+      <button class="more" id="toggle-past" type="button" aria-expanded="false" aria-controls="rows" aria-labelledby="past-label" hidden>
+        <span id="past-label"></span>
+        <span class="past-hint" id="past-hint" aria-hidden="true">Scroll up to view</span>
+      </button>
+      <div class="list-head" id="listHead"></div>
+    </div>
     <div id="listNote"></div>
     <ol class="rows" id="rows"></ol>
   </section>
@@ -534,6 +558,7 @@ const KIND = {
 };
 const kind = routeId => KIND[routeId] || ["local", routeId];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -626,7 +651,7 @@ async function refresh() {
 // previous service day, with minutes past 24:00, matching the timetable.
 function serviceNow() {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric",
+    timeZone: "America/Los_Angeles", weekday: "short", year: "numeric", month: "short", day: "numeric",
     hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23",
   }).formatToParts(new Date());
   const get = t => parts.find(p => p.type === t).value;
@@ -634,7 +659,9 @@ function serviceNow() {
   let dow = DAYS.indexOf(get("weekday"));
   let sec = h * 3600 + m * 60 + s;
   if (h < 3) { dow = (dow + 6) % 7; sec += 86400; }
-  return { dow, sec, min: Math.floor(sec / 60), weekday: get("weekday"), date: `${get("month")} ${get("day")}`, h, m };
+  // A date-only UTC stamp identifies the Pacific service day, including across weeks.
+  const dayStamp = Date.UTC(+get("year"), MONTHS.indexOf(get("month")), +get("day") - (h < 3 ? 1 : 0));
+  return { dow, dayStamp, sec, min: Math.floor(sec / 60), weekday: get("weekday"), date: `${get("month")} ${get("day")}`, h, m };
 }
 const dayType = dow => (dow === 0 || dow === 6) ? "weekend" : "weekday";
 
@@ -699,7 +726,7 @@ const ready = () => !!(DATA && prefs && !prefs.works && known(prefs.home) && kno
 const route = () => state.dir === "work" ? [prefs.home, prefs.work] : [prefs.work, prefs.home];
 let upcomingDayType = dayType(now0.dow);
 // The service day and next train the timetable on screen was drawn with.
-let shown = { dow: null, next: null };
+let shown = { dow: null, next: null, key: null };
 
 // The service day whose trains come next. Once the day's last train has left (say
 // 12:30am, before the 3am cutoff), that's the following day, whose times then count
@@ -825,20 +852,64 @@ function put(el, html) {
 }
 const rowButton = n => [...$("rows").querySelectorAll("button")].find(b => b.dataset.n === n);
 
-// If drawing replaced the focused button, focus its replacement, or the card if
-// there isn't one.
-function render() {
+const viewportTop = () => parseFloat(getComputedStyle($("listHeader")).top) || 0;
+
+// Capture immediately before a redraw, not before an asynchronous download.
+// Partly visible rows count, but rows obscured by the sticky header do not.
+function captureRows() {
+  if ($("list").hidden || !shown.key) return null;
+  const top = Math.max(viewportTop(), $("listHeader").getBoundingClientRect().bottom);
+  const buttons = [...$("rows").querySelectorAll("button")];
+  return {
+    key: shown.key,
+    first: buttons[0]?.dataset.n,
+    headerHeight: $("listHeader").offsetHeight,
+    visible: buttons.map(b => ({ n: b.dataset.n, rect: b.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.bottom > top && rect.top < innerHeight),
+  };
+}
+
+function restoreRows(before, toggle) {
+  if (!before || $("list").hidden || before.key !== shown.key) return;
+  const survivor = before.visible.find(r => rowButton(r.n));
+  let b, y;
+  const header = $("listHeader"), pinnedBottom = viewportTop() + header.offsetHeight;
+  if (survivor) {
+    b = rowButton(survivor.n);
+    y = survivor.rect.top;
+    // A newly introduced action must not cover the row we are preserving.
+    if (header.offsetHeight > before.headerHeight) y = Math.max(y, pinnedBottom);
+  } else if (toggle || before.visible.length) {
+    b = (toggle && state.showPast ? rowButton(before.first) : null) ||
+      rowButton(shown.next) || $("rows").querySelector("button");
+    y = pinnedBottom;
+  }
+  // The browser clamps to the real document limits; don't manufacture space.
+  if (b) scrollBy(0, b.getBoundingClientRect().top - y);
+}
+
+let restoringFocus = false;
+
+// Row picking owns its own transaction; other same-table redraws preserve the
+// first visible surviving train. Restore focus without triggering another scroll.
+function render({ keepPlace = true, toggle = false } = {}) {
   const had = document.activeElement;
+  const before = keepPlace ? captureRows() : null;
   draw();
-  if (had && !had.isConnected) ((had.id ? $(had.id) : rowButton(had.dataset.n)) ?? $("sign")).focus({ preventScroll: true });
+  if (had && (!had.isConnected || had === $("toggle-past") && had.hidden)) {
+    const replacement = had.id ? $(had.id) : rowButton(had.dataset.n);
+    restoringFocus = true;
+    (replacement && !replacement.hidden ? replacement : $("sign")).focus({ preventScroll: true });
+    restoringFocus = false;
+  }
+  restoreRows(before, toggle);
   updateTop();
 }
 
-// The floating button shows while the card is scrolled up behind the controls.
+// The controls scroll away now; only the viewport safe area obscures the card.
 function updateTop() {
-  const controls = $("controls");
   $("to-top").hidden = $("list").hidden ||
-    $("sign").getBoundingClientRect().bottom > (controls.hidden ? 0 : controls.getBoundingClientRect().bottom);
+    $("sign").getBoundingClientRect().bottom > viewportTop();
 }
 
 function draw() {
@@ -881,7 +952,10 @@ function draw() {
   const cols = columns(from, to);
   const list = trips(from, to, state.day, cols || []);
   const nextIdx = isToday ? list.findIndex(t => t.dep + svc.offset >= now.min) : -1;
-  shown = { dow: svc.dow, next: list[nextIdx]?.n };
+  shown = {
+    dow: svc.dow, next: list[nextIdx]?.n,
+    key: JSON.stringify([from, to, prefs.stop, state.day, now.dayStamp + svc.offset * 60000]),
+  };
   if (state.pick && (state.pick.dow !== svc.dow || !list.some(t => t.n === state.pick.n))) state.pick = null;
   const pickIdx = state.pick ? list.findIndex(t => t.n === state.pick.n) : -1;
   const secs = t => (t.dep + svc.offset) * 60 - now.sec;
@@ -953,17 +1027,19 @@ function draw() {
   // A picked earlier train stays in the table, so it isn't one the button hides.
   const hideable = pastCount - (pickIdx >= 0 && pickIdx < pastCount ? 1 : 0);
   put($("listNote"), isToday && svc.offset
-    ? `<div class="day-note">${DAY_NAMES[svc.dow]}'s trains</div>`
-    : hideable
-    ? `<button class="more" id="toggle-past" type="button" aria-expanded="${state.showPast}">${state.showPast ? "Hide" : "Show"} ${hideable} earlier train${hideable === 1 ? "" : "s"}</button>`
-    : "");
+    ? `<div class="day-note">${DAY_NAMES[svc.dow]}'s trains</div>` : "");
   const btn = $("toggle-past");
-  if (btn) btn.onclick = () => { state.showPast = !state.showPast; render(); };
+  btn.hidden = !hideable || !!svc.offset || !isToday;
+  btn.setAttribute("aria-expanded", state.showPast);
+  $("past-label").textContent = `${state.showPast ? "Hide" : "Show"} ${hideable} earlier train${hideable === 1 ? "" : "s"}`;
+  $("past-hint").setAttribute("aria-hidden", !state.showPast);
+  if (state.showPast) btn.setAttribute("aria-describedby", "past-hint");
+  else btn.removeAttribute("aria-describedby");
 
   $("list").classList.toggle("three", !!cols);
-  $("listHead").innerHTML = cols
+  put($("listHead"), cols
     ? cols.map(name => `<span class="${name === from || name === to ? "on" : ""}">${esc(name)}</span>`).join("") + "<span>Train</span>"
-    : `<span>Depart</span><span>Arrive</span><span class="ride-h">Ride</span><span>Train</span>`;
+    : `<span>Depart</span><span>Arrive</span><span class="ride-h">Ride</span><span>Train</span>`);
   const role = name => name === from ? "dep" : name === to ? "arr" : "via";
   put($("rows"), list.map((t, i) => {
     const past = i < pastCount;
@@ -1020,30 +1096,36 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
   if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
 });
-// Tapping a row shows its train on the card; tapping it again, or the next train's
-// row, goes back to the next train. Once the top of the card is scrolled away, the
-// tapped row stays where it was on screen, even though the card above it changes
-// height. While the top is in view the page stays put, so the heading and countdown
-// the tap was for don't slide under the controls.
+$("toggle-past").onclick = () => { state.showPast = !state.showPast; render({ toggle: true }); };
+// Native focus scrolling doesn't account for an overlapping sticky header.
+// Only keyboard navigation moves the row; redraws and pointer taps keep place.
+$("rows").addEventListener("focusin", e => {
+  const b = e.target.closest("button[data-n]");
+  if (!b || restoringFocus || !b.matches(":focus-visible")) return;
+  const rect = b.getBoundingClientRect();
+  const top = Math.max(viewportTop(), $("listHeader").getBoundingClientRect().bottom);
+  if (rect.top < top) scrollBy(0, Math.floor(rect.top - top));
+  else if (rect.bottom > innerHeight) scrollBy(0, Math.ceil(rect.bottom - innerHeight));
+});
+// Picking a row keeps it in place while the card changes height, unless the
+// card's heading is still visible: then don't scroll that heading out of view.
 $("rows").onclick = e => {
   const b = e.target.closest("button[data-n]");
   if (!b) return;
   const n = b.dataset.n, dow = shown.dow;
   const top = b.getBoundingClientRect().top, listTop = $("list").getBoundingClientRect().top;
-  const cardInView = $("sign").getBoundingClientRect().top >= $("controls").getBoundingClientRect().bottom;
-  // This handler keeps things in place itself; hold off the browser's scroll anchoring.
-  document.body.style.overflowAnchor = "none";
-  requestAnimationFrame(() => document.body.style.overflowAnchor = "");
+  const cardInView = $("sign").getBoundingClientRect().top >= viewportTop();
   // Catch up first, in case a train has left since the last redraw. The pick keeps the
   // day of the table that was tapped, so if that has moved on to the next day's
   // trains, the next redraw drops it.
-  render();
+  render({ keepPlace: false });
   state.pick = n === state.pick?.n || n === shown.next ? null : { n, dow };
-  render();
+  render({ keepPlace: false });
   // An unpicked train among collapsed earlier ones disappears; then keep the table in place.
   const moved = rowButton(n);
   const dy = moved ? moved.getBoundingClientRect().top - top : $("list").getBoundingClientRect().top - listTop;
   scrollBy(0, cardInView ? Math.min(dy, 0) : dy);
+  updateTop();
 };
 $("to-top").onclick = () => {
   scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });

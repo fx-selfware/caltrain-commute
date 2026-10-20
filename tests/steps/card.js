@@ -50,10 +50,11 @@ Then("the card has keyboard focus", async ({ page }) => {
   await expect(card(page)).toBeFocused();
 });
 
-// Not scrolled up under the sticky controls.
+// Check the viewport itself: the top controls may have scrolled out of view.
 Then("the top of the card is in view", async ({ page }) => {
-  const controls = await page.locator("#controls").boundingBox();
-  expect((await card(page).boundingBox()).y).toBeGreaterThanOrEqual(controls.y + controls.height);
+  const box = await card(page).boundingBox();
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.y).toBeLessThan(page.viewportSize().height);
 });
 
 Then("the card has changed height", async ({ page, app }) => {

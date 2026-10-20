@@ -19,7 +19,8 @@ After the last train of the night on your route, it shows the next day's trains.
 2. **Work** and **Home** switch the direction. The page opens on **Work**; add `#home` to the address to open on **Home** instead.
 3. With a stop set, the timetable has a column for home, the stop and work, in travel order, with — where a train doesn't stop. The next-train card shows the time at the stop too.
 4. Tap a train in the timetable to see it on the card instead of the next train, with its countdown (or how long ago it left), its stop, and the trains after it. Tap it again, tap the next train, or use **Back to next train** to go back. Switching direction or schedule also goes back. When you've scrolled down past the card, the round arrow button at the bottom right takes you back up.
-5. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
+5. While you scroll the timetable, its column labels stay pinned; Work/Home and the other top controls scroll away. **Show N earlier trains** adds past trains above the train you're reading without jumping to the day's first train—scroll up to browse them. **Hide N earlier trains** stays beside the pinned labels, so you can collapse from anywhere in the table. Hiding keeps a visible remaining train in place where the page length allows; if everything you're reading disappears, it returns to the next train. A selected past train stays visible. With no hideable earlier trains, only the labels remain.
+6. The gear icon at the top opens **Settings**, where you change your stations and switch between 12- and 24-hour time. Both are saved in the browser.
 
 ## Running locally
 
@@ -63,7 +64,7 @@ Scenario: The card shows the next train, its countdown and the two after it
 | `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Home-screen icons rendered from `icon.svg` |
 | `fonts/` | The Overpass typeface (Latin, weights 400, 600 and 800) and its license |
 | `tests/`, `playwright.config.js`, `package.json` | Test scenarios, their step definitions, and a stand-in for caltrain.com's timetable |
-| `CLAUDE.md` | Commands and conventions for coding agents |
+| `AGENTS.md` | Commands and conventions for coding agents |
 | `docs/` | One dated folder per piece of work (`YYYY-MM-DD-name`) with its intent, and for features its spec and plan, written before building it |
 
 ## Disclaimer
