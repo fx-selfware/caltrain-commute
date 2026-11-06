@@ -72,8 +72,8 @@ const row = (page, n) => page.locator("#rows li").filter({ has: page.locator(".n
 // Train numbers on the rows, top to bottom.
 const rowNumbers = page => page.locator("#rows .num").allTextContents();
 
-// The card's itinerary as [time, station, tag] rows.
-const itinerary = page => page.locator("#sign .itin li").evaluateAll(lis => lis.map(li =>
+// The card's itinerary as [time, station, tag] rows, without the button for more stops.
+const itinerary = page => page.locator("#sign .itin li:not(.more-stops)").evaluateAll(lis => lis.map(li =>
   [...li.querySelectorAll(".t, .s, .tag")].map(el => el.textContent.trim())));
 
 module.exports = { FIXTURE, FAKE, moment, nextAt, serveTimetable, open, now, row, rowNumbers, itinerary };

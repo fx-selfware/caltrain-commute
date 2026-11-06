@@ -233,7 +233,9 @@ Feature: Pick a train from the timetable
   @R5
   Scenario: Picking a train with the card in view leaves the card's heading in view
     # Found by eye in Chrome: keeping the row in place scrolled the heading under the controls.
-    Given I open the app
+    # Tall enough that train 106 is on screen without scrolling, in both browsers.
+    Given the screen is 390 by 844 pixels
+    And I open the app
     When I tap train 106
     Then the card is headed "Selected train"
     And the top of the card is in view

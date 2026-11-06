@@ -210,6 +210,45 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .itin .skipped .mark { background: var(--sign-bg); border: 2px solid var(--sign-muted); }
 .itin .skipped .t, .itin .skipped .s { color: var(--sign-muted); }
 .itin .skipped .tag { background: transparent; color: var(--sign-muted); border: 1px solid var(--sign-muted); }
+/* Other stops on the way are smaller, so the departure, arrival and my stop stand out. */
+.itin .call { min-height: 22px; }
+.itin .call .mark { width: 7px; height: 7px; box-shadow: 0 0 0 3px var(--sign-bg); }
+.itin .call .t { font-size: 15px; font-weight: 600; }
+.itin .call .t small { font-size: .6em; }
+.itin .call .s { font-size: 14px; font-weight: 400; }
+/* A short row on the route line; the button reaches into the gaps around it. */
+.itin .more-stops { min-height: 24px; }
+.itin .more-stops button {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  /* Out into the gaps above and below, and the column gap on the left, so the label
+     still lines up with the times. */
+  margin: -8px 0 -8px -6px;
+  padding: 2px 6px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sign-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+}
+/* Drawn, not a glyph, so it stays out of the button's name. Down to show, up to hide. */
+.itin .more-stops button::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.itin .more-stops button[aria-expanded="true"]::before { transform: translateY(2px) rotate(-135deg); }
+/* Inside the button, so the ring doesn't cover the next row. */
+.itin .more-stops button:focus-visible { outline-offset: -2px; }
+@media (hover: hover) { .itin .more-stops button:hover { color: var(--sign-ink); } }
 .trip { display: grid; gap: 4px; }
 .trip-train { display: flex; align-items: center; gap: 8px; font-size: 15px; }
 .trip-train b { font-weight: 800; }
@@ -704,6 +743,13 @@ function itinRow(time, name, stop) {
     ? `<li class="stop skipped"><span class="mark"></span><span class="t">—</span><span class="s">${esc(name)}</span><span class="tag">Skips</span></li>`
     : `<li class="stop"><span class="mark"></span><span class="t">${fmt(time)}</span><span class="s">${esc(name)}</span><span class="tag">Stop</span></li>`;
 }
+// Another station the train stops at on the way, drawn smaller.
+const callRow = (time, name) => `<li class="call"><span class="mark"></span><span class="t">${fmt(time)}</span><span class="s">${esc(name)}</span></li>`;
+// The button under the departure that shows or hides the `n` stops not on the card.
+function moreStops(n) {
+  const label = state.allStops ? `Hide ${n} stop` : `Show ${n} more stop`;
+  return `<li class="more-stops"><button id="all-stops" type="button" aria-expanded="${state.allStops}">${label}${n === 1 ? "" : "s"}</button></li>`;
+}
 const chip = routeId => { const [cls, label] = kind(routeId); return `<span class="chip ${cls}">${esc(label)}</span>`; };
 
 // Before noon on the service clock the commute goes to work; from noon until the
@@ -731,6 +777,9 @@ const state = {
   // A train picked in the timetable: { n, dow }, its number and the service day
   // whose trains were showing, so it doesn't carry over to the next day's.
   pick: null,
+  // Whether the card lists every station its train stops at on the way, for any
+  // train it shows. Collapsed each time the page loads.
+  allStops: false,
 };
 let setupFilled = false;
 
@@ -771,11 +820,15 @@ function trips(from, to, day, show = []) {
   const rows = show.map(name => [name, dir.stops.indexOf(name)]);
   return dir.trips
     .filter(t => t.s === day && t.t[a] != null && t.t[b] != null)
-    .map(t => ({
-      n: t.n, k: t.k, dep: t.t[a], arr: t.t[b],
-      stops: t.t.slice(a + 1, b).filter(x => x != null).length,
-      at: Object.fromEntries(rows.map(([name, i]) => [name, t.t[i] ?? null])),
-    }))
+    .map(t => {
+      // Every station in between, in travel order, with the time or null where it doesn't stop.
+      const calls = dir.stops.slice(a + 1, b).map((name, j) => ({ name, time: t.t[a + 1 + j] ?? null }));
+      return {
+        n: t.n, k: t.k, dep: t.t[a], arr: t.t[b], calls,
+        stops: calls.filter(c => c.time != null).length,
+        at: Object.fromEntries(rows.map(([name, i]) => [name, t.t[i] ?? null])),
+      };
+    })
     .sort((x, y) => x.dep - y.dep);
 }
 
@@ -980,6 +1033,11 @@ function draw() {
   const trainCard = (i, eyebrow, back) => {
     const t = list[i], later = list.slice(i + 1, i + 3);
     const then = l => `<span><b>${fmtPlain(l.dep)}</b> ${esc(kind(l.k)[1])}${isToday ? ` · ${until(secs(l))}` : ""}</span>`;
+    // Between the two: my stop always, and once expanded every other station the
+    // train stops at. With no others, expanded and collapsed draw the same card.
+    const more = t.calls.filter(c => c.time != null && c.name !== prefs.stop).length;
+    const calls = t.calls.filter(c => c.name === prefs.stop || (state.allStops && c.time != null))
+      .map(c => c.name === prefs.stop ? itinRow(c.time, c.name, true) : callRow(c.time, c.name));
     return `
       <div class="domes"></div>
       <div class="sign-body">
@@ -987,7 +1045,8 @@ function draw() {
           ? `<span class="count${secs(t) <= -60 ? " gone" : ""}">${until(secs(t))}</span>` : ""}</div>
         <ol class="itin" aria-label="${routeText}">
           ${itinRow(t.dep, from)}
-          ${prefs.stop ? itinRow(t.at[prefs.stop], prefs.stop, true) : ""}
+          ${more ? moreStops(more) : ""}
+          ${calls.join("")}
           ${itinRow(t.arr, to)}
         </ol>
         <div class="trip">
@@ -1036,6 +1095,10 @@ function draw() {
   }
   const back = $("back");
   if (back) back.onclick = () => { state.pick = null; render(); sign.focus({ preventScroll: true }); };
+  // Only the card below the button changes. Keeping the timetable's place would
+  // scroll the button away from the finger, so don't.
+  const allStops = $("all-stops");
+  if (allStops) allStops.onclick = () => { state.allStops = !state.allStops; render({ keepPlace: false }); };
 
   const pastCount = isToday ? (nextIdx < 0 ? list.length : nextIdx) : 0;
   // A picked earlier train stays in the table, so it isn't one the button hides.
