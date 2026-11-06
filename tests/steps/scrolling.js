@@ -26,9 +26,6 @@ When("I press Shift+Tab", async ({ page, browserName }) => {
   // Safari's default keyboard navigation needs Option to include buttons.
   await page.keyboard.press(browserName === "webkit" ? "Alt+Shift+Tab" : "Shift+Tab");
 });
-When("I return to the app", async ({ page }) => {
-  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-});
 Given("the next timetable starts with train {int}", async ({ page }, first) => {
   // Change the served timetable markup, not the application's parsed data.
   const body = await page.evaluate(({ html, first }) => {

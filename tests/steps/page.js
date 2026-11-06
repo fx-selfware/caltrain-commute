@@ -87,3 +87,9 @@ Then("the footer links to {string}", async ({ page }, href) => {
 Then("the page is scrolled to the top", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
+
+Then("the page is still scrolled to the bottom", async ({ page }) => {
+  await page.clock.runFor(32);
+  expect(await page.evaluate(() => window.scrollY > 0 &&
+    Math.abs(window.scrollY + innerHeight - document.documentElement.scrollHeight) < 1)).toBe(true);
+});
