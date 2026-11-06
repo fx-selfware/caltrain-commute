@@ -25,6 +25,35 @@ When("I open {string} on the same site", async ({ page }, path) => {
   await page.goto("/" + path);
 });
 
+// Playwright can't send a page to the background in every browser, so the page is
+// told it's hidden, as when switching apps or locking the phone.
+When("I leave the app", async ({ page }) => {
+  await page.evaluate(() => {
+    for (const [key, value] of [["hidden", true], ["visibilityState", "hidden"]]) {
+      Object.defineProperty(document, key, { configurable: true, get: () => value });
+    }
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+});
+
+// As when a link opens in a background tab: the app loads without being seen.
+When("I open the app in the background", async ({ page, app }) => {
+  await page.addInitScript(() => {
+    for (const [key, value] of [["hidden", true], ["visibilityState", "hidden"]]) {
+      Object.defineProperty(document, key, { configurable: true, get: () => value });
+    }
+  });
+  await open(page, app);
+});
+
+When("I return to the app", async ({ page }) => {
+  await page.evaluate(() => {
+    delete document.hidden;
+    delete document.visibilityState;
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+});
+
 // The fake caltrain.com answers before the network is consulted, so take it down too.
 When("I go offline", async ({ page }) => {
   await page.context().setOffline(true);

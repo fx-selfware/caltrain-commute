@@ -706,10 +706,24 @@ function itinRow(time, name, stop) {
 }
 const chip = routeId => { const [cls, label] = kind(routeId); return `<span class="chip ${cls}">${esc(label)}</span>`; };
 
+// Before noon on the service clock the commute goes to work; from noon until the
+// day ends at 3am, home.
+function timeDir(now) { return now.sec < 12 * 3600 ? "work" : "home"; }
+// The direction a fresh open shows: #home or #work in the address, else the time.
+function openingDir(now) {
+  const hash = location.hash.replace("#", "");
+  return hash === "home" || hash === "work" ? hash : timeDir(now);
+}
+// Coming back after this long away picks the direction again, as on opening. It's
+// longer than any one trip (1 h 38 min end to end, Nov 2026), so a ride doesn't count.
+const AWAY_MS = 2 * 60 * 60 * 1000;
+// When the page was hidden, or null while it's on screen. A page that loads hidden
+// hasn't been seen yet, so first showing it counts as opening it.
+let hiddenAt = document.hidden ? -Infinity : null;
+
 const now0 = serviceNow();
-const hash = location.hash.replace("#", "");
 const state = {
-  dir: hash === "home" ? "home" : "work",
+  dir: openingDir(now0),
   day: dayType(now0.dow),
   dayPinned: false,
   showPast: false,
@@ -1093,8 +1107,17 @@ document.querySelectorAll("[data-day]").forEach(b => b.onclick = () => {
   state.showPast = false; renderControls(); render();
 });
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) return;
+  // The latest hide, in case a browser misses a "visible": a break is never overcounted.
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  const away = hiddenAt !== null && Date.now() - hiddenAt >= AWAY_MS;
+  hiddenAt = null;
+  const dir = away ? openingDir(serviceNow()) : state.dir;
+  const turned = dir !== state.dir;
+  if (turned) { state.dir = dir; state.pick = null; state.showPast = false; renderControls(); }
   if (Date.now() - lastCheck > RECHECK_MS) refresh(); else render();
+  // Like a fresh open, start at the top. Instantly: the redraw after the download
+  // would cut a smooth scroll short.
+  if (turned && !$("list").hidden) { scrollTo(0, 0); updateTop(); }
 });
 $("toggle-past").onclick = () => { state.showPast = !state.showPast; render({ toggle: true }); };
 // Native focus scrolling doesn't account for an overlapping sticky header.

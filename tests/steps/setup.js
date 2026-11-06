@@ -26,6 +26,11 @@ Given("I saved my stations with the older version: home {string}, work {string} 
   app.prefs = { home, works: [a, b] };
 });
 
+// For a whole feature: "I open the app" then opens this address.
+Given("the app's address ends in {string}", async ({ app }, hash) => {
+  app.hash = hash;
+});
+
 Given("the screen is {int} by {int} pixels", async ({ page }, width, height) => {
   await page.setViewportSize({ width, height });
 });

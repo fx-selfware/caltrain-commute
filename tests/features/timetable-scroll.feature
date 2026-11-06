@@ -5,6 +5,8 @@ Feature: Keep your place while browsing the timetable
   Background:
     Given it is Wednesday 12:00pm
     And my commute is from "San Francisco" to "Mountain View"
+    # Southbound trains (1104 and so on), though it's past noon.
+    And the app's address ends in "#work"
     And the screen is 390 by 520 pixels
     And there is a train every ten minutes
 

@@ -149,7 +149,7 @@ Feature: Pick a train from the timetable
   @R3
   Scenario: A pick doesn't carry over to the next day's trains
     Given it is Wednesday 11:40pm
-    And I open the app
+    And I open the app with "#work" in the address
     And I tap "Show 5 earlier trains"
     When I tap train 106
     Then the countdown says "left 14 h 40 min ago"
@@ -175,7 +175,7 @@ Feature: Pick a train from the timetable
   Scenario: A tap just after the last train goes to the next day's table
     # Not tomorrow's train with the same number.
     Given it is Wednesday 11:49pm
-    And I open the app
+    And I open the app with "#work" in the address
     And I tap "Show 5 earlier trains"
     When the time reaches 11:51pm before the page redraws
     And I tap train 402

@@ -23,7 +23,7 @@ Feature: Service day
 
   Scenario: After the last train, the next day's trains show
     Given it is Wednesday 11:55pm
-    When I open the app
+    When I open the app with "#work" in the address
     Then the card is headed "Next train · Thursday"
     And the countdown says "in 6 h 5 min"
     And the timetable is headed "Thursday's trains"
@@ -31,7 +31,7 @@ Feature: Service day
 
   Scenario: After Friday's last train, the weekend schedule shows
     Given it is Friday 11:45pm
-    And I open the app
+    And I open the app with "#work" in the address
     And the Weekday schedule is selected
     And the countdown says "in 5 min"
     When 10 minutes pass
