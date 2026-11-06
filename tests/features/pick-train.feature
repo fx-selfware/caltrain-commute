@@ -236,9 +236,11 @@ Feature: Pick a train from the timetable
     # Tall enough that train 106 is on screen without scrolling, in both browsers.
     Given the screen is 390 by 844 pixels
     And I open the app
+    And I note where the card is on screen
     When I tap train 106
     Then the card is headed "Selected train"
     And the top of the card is in view
+    And the card is still in the same place on screen
 
   @R5
   Scenario: The tapped train stays put while the card above it changes height

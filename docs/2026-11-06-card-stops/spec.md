@@ -1,6 +1,6 @@
 # Spec: show every stop on the card
 
-Status: reviewed 2026-11-06, awaiting the owner's approval
+Status: approved 2026-11-06
 Intent: [intent.md](intent.md)
 Date: 2026-11-06
 
@@ -41,6 +41,15 @@ page. Only content below the button changes, so it stays under the finger, and
 the timetable moves down or up with the card. The one exception is collapsing
 when the page is scrolled near its end: if the page gets too short for where
 it's scrolled, the browser has to pull it back.
+
+A redraw doesn't scroll the card away either. While the card's heading is on
+screen, a redraw that makes the card taller leaves the card where it is, and
+the timetable moves down. That covers a next train with more stops, **Back to
+next train**, and coming back to the app. Picking a train already follows this
+rule. (Amended after code review. It narrows the timetable-scroll spec's R5,
+"periodic redraws … preserve the viewed row": with the card's heading on
+screen, the card is what's being viewed. **Show N earlier trains** and **Hide N
+earlier trains** still keep the train being read in place.)
 
 **R5. Keyboard and screen reader.** The button carries `aria-expanded`. Its
 accessible name is exactly its label, with no glyphs. It keeps keyboard focus
@@ -104,7 +113,7 @@ All app changes are in `index.html`.
   - Its text is `--sign-muted`, which has 8.1:1 contrast on the sign in light
     and 6.9:1 in dark. `--muted`, which **Show N earlier trains** uses, is
     3.1:1 on the sign, too low.
-  - A chevron, drawn with borders on an empty `::after` (like `.select::after`),
+  - A chevron, drawn with borders on an empty `::before` (like `.select::after`),
     points down to expand and up to collapse. Text glyphs would get into the
     button's name.
   - The row is no more than 28px tall. The button's hit area is at least 40px,
@@ -118,6 +127,10 @@ All app changes are in `index.html`.
   above the button changes, so with no scroll it stays put (R4). `render()`
   already puts focus back, by id, on a button the redraw replaced, as it does
   for **Back to next train** (R5).
+- **Redraws** (added after code review). `captureRows()` notes whether the
+  card's heading was in view. `restoreRows()` then scrolls only up, never down,
+  when it was, except for Show or Hide earlier trains. That's
+  `Math.min(dy, 0)`, the rule the row-picking handler already uses.
 - **Styles.** The `.call` rows have:
   - a smaller mark: a dot in `--sign-ink`, ringed in `--sign-bg` so it cuts the
     route line like the others;
@@ -159,6 +172,16 @@ sides of Palo Alto, and 502 skips Palo Alto.
   San Jose), so this fails if the tap keeps the timetable row in place instead.
 - **R5:** keyboard focus moves to the button, Enter expands, focus stays
   through a minute's redraw, and Enter collapses.
+
+Added after code review:
+- **R2:** the other stops are drawn smaller than my stop.
+- **R3:** the choice is kept across a train with nothing more to show
+  (Millbrae to San Jose with a stop at Mountain View: 104, then 502, then 402).
+- **R4:** the card stays put when the next train has more stops.
+- **R5:** the button is at least 40 pixels tall.
+- `pick-train.feature`: "Picking a train with the card in view…" also checks
+  that the card didn't move. Its "top of the card is in view" only checks
+  y ≥ 0, which passed with the rule broken.
 
 Step changes:
 
@@ -209,6 +232,11 @@ other existing scenario passed against the review's prototype.
   ordered list and the button is one of its items, so "list, 4 items" includes
   it. Taking it out of the list (`role="none"`) is the menu pattern, but it
   trips list-structure checks, and it isn't worth that.
+- **Picking a train with the card expanded and on screen** can push the
+  tapped row off the bottom. The card grows to show the picked train's stops,
+  and, as before, a pick with the card's heading in view doesn't scroll down.
+  The card is what changed, so it stays in view. Raised in code review and
+  accepted.
 - **Collapsing near the end of a short page** can't keep the button in place
   (R4). It needs a short timetable scrolled to the bottom with the card still
   on screen.
@@ -262,8 +290,9 @@ dark, at 390px and 320px wide. Findings and what changed:
 - **Checked correct:**
   - all eight example rows, the after-midnight case, and the R3 walk-through,
     by hand and on the prototype;
-  - that the R4 scenario tells the two `render()` modes apart, in both engines,
-    at the top and scrolled;
+  - that the R4 scenario tells the two `render()` modes apart, in both engines
+    (the scenario covers the top of the page; the reviewer's probes also covered
+    a scrolled page);
   - that a tap in WebKit doesn't scroll a long card;
   - focus through Enter, a minute's redraw and Enter again, in both engines;
   - that a reload keeps the paused clock and collapses the card;
@@ -277,3 +306,38 @@ dark, at 390px and 320px wide. Findings and what changed:
   It found nothing materially simpler. Toggling a class on a stable button
   would avoid replacing it on tap, but it needs attribute syncing and hidden
   rows. That's only worth it if the VoiceOver check goes badly.
+
+## Code review
+
+A separate, fresh-context reviewer read the finished diff (3bf4eeb) against
+this spec and the code. It ran `npm test` (211 passed), probes, and mutations in
+a copy of the repository. Findings and what was done:
+
+- **A redraw scrolled the card's heading away (bug, confirmed, fixed).** Once
+  expanded, the card's height depends on the train. When a redraw made it
+  taller, the page's scroll keeping held the first visible timetable row in
+  place and scrolled the countdown off the top. That happened for a next train
+  with more stops, **Back to next train**, and a short return to the app. On
+  390 by 844 the probe measured 161px; with live data it would be about 300px.
+  The fix is the rule picking a train already follows (R4, amended). "The card
+  stays put when the next train has more stops" failed first, with the card
+  moving 30px in both browsers.
+- **A pick with the card expanded can push the tapped row off screen (risk,
+  accepted).** Added to Concerns.
+- **Test gaps (confirmed by mutation, covered):** the 40px hit area, the
+  smaller rows, and keeping the choice across a train with nothing more to show.
+  Each now has a check that fails when broken.
+- **"the card's stops are {word}" took any word as collapsed (nit, fixed).** It
+  throws on anything but expanded or collapsed.
+- **The pick-train scenario couldn't catch its own regression (nit,
+  pre-existing, fixed).** It now also checks that the card didn't move. With
+  the pick rule broken, it fails.
+- **Docs out of step with the code (nit, fixed):** `::before`, not `::after`;
+  the chevron, not the label, lines up with the times; the R4 scenario covers
+  the top of the page only.
+- **Checked correct:** `calls` in both directions and after midnight; one filter
+  for both states; N leaving out my stop; labels and plurals; the choice never
+  reset; focus by id; `esc()` on station names; the 40px hit area reaching into
+  the gaps without overlapping rows; selectors beating the narrow-screen
+  overrides; contrast; the README; the `itinerary()` skip; and the screen-size
+  change being harmless. It found the design about as simple as it can be.

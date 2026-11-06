@@ -931,6 +931,7 @@ function captureRows() {
     key: shown.key,
     first: buttons[0]?.dataset.n,
     headerHeight: $("listHeader").offsetHeight,
+    cardInView: $("sign").getBoundingClientRect().top >= viewportTop(),
     visible: buttons.map(b => ({ n: b.dataset.n, rect: b.getBoundingClientRect() }))
       .filter(({ rect }) => rect.bottom > top && rect.top < innerHeight),
   };
@@ -952,7 +953,12 @@ function restoreRows(before, toggle) {
     y = pinnedBottom;
   }
   // The browser clamps to the real document limits; don't manufacture space.
-  if (b) scrollBy(0, b.getBoundingClientRect().top - y);
+  if (!b) return;
+  // As when picking a train: while the card's heading is in view, a card that grows
+  // (say, a next train with more stops) moves the table down rather than scrolling
+  // the heading away. Showing earlier trains still keeps the train being read.
+  const dy = b.getBoundingClientRect().top - y;
+  scrollBy(0, before.cardInView && !toggle ? Math.min(dy, 0) : dy);
 }
 
 let restoringFocus = false;

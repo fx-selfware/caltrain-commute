@@ -105,7 +105,7 @@ Concerns in the spec).
 
   **Found and fixed:** the focus ring was drawn outside the button's 40px hit
   area and covered the top of the first stop's row. It's inset now, with 6px of
-  padding on each side. The label still lines up with the times, since the
+  padding on each side. The chevron still lines up with the times, since the
   button reaches 6px into the column gap. No other problems: nothing
   overlapped, the route line ran through every mark, the button's text is
   legible on the sign in both themes, and at 320px there's no horizontal
@@ -120,3 +120,23 @@ Concerns in the spec).
   view" also passes without the new screen size. The size stays anyway: on the
   iPhone 13's default screen, train 106 is still partly off the bottom, so the
   scenario would otherwise depend on the device's height.
+- **After code review.** The review's findings and what was done are in
+  [spec.md](spec.md#code-review). In short:
+  - A redraw no longer scrolls the card's heading away when the card grows. R4
+    is amended, `restoreRows()` follows the row-picking rule, and "The card
+    stays put when the next train has more stops" failed first (30px, both
+    browsers).
+  - New checks: the 40px hit area, the smaller rows, the choice kept across a
+    train with nothing more to show, and the card not moving on a pick.
+
+  Verification after these changes:
+  - `npm test`: 215 passed, with none failed or flaky.
+  - Broken on purpose, each caught in both browsers, then restored: the redraw
+    rule removed; a 24px hit area; the other stops not drawn smaller; the choice
+    reset on a train with nothing more to show; the pick rule broken
+    (pick-train). Also, applying the redraw rule to Show earlier trains fails an
+    existing timetable-scroll scenario, so that exemption is guarded.
+  - Chrome 156 with live data, light and dark, 390 by 844: expanded on express
+    506 (7 stops) at 7:10am with earlier trains shown, then at 7:21am local 110
+    (16 stops). The card stayed at the same place, with the countdown ("in 4
+    min") in view. Screenshots reviewed.

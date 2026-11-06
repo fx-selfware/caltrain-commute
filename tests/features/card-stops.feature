@@ -66,6 +66,7 @@ Feature: Every stop on the card
       | 8:44am | Mountain View    |      |
       | 9:00am | San Jose Diridon |      |
     And the card's "Hide 2 stops" button is just under the departure
+    And the other stops are drawn smaller than my stop
 
   @R1 @R2
   Scenario: A single stop on the way says so
@@ -168,6 +169,22 @@ Feature: Every stop on the card
     And the card's stops are collapsed
 
   @R3
+  Scenario: A train with nothing more to show keeps the choice for the next one
+    Given my commute is from "Millbrae" to "San Jose Diridon" with a stop at "Mountain View"
+    And I open the app
+    And I tap "Show 1 more stop"
+    # The 7:45 express skips Palo Alto, so only my stop is between.
+    When I tap train 502
+    Then the card has no button for more stops
+    When I tap train 402
+    Then the card's itinerary is:
+      | 8:15am | Millbrae         |      |
+      | 8:35am | Palo Alto        |      |
+      | 8:44am | Mountain View    | Stop |
+      | 9:00am | San Jose Diridon |      |
+    And the card's stops are expanded
+
+  @R3
   Scenario: Coming back after two hours keeps the card expanded
     Given it is Wednesday 8:00am
     And my commute is from "San Francisco" to "Mountain View"
@@ -198,10 +215,27 @@ Feature: Every stop on the card
     Then the card's stops are collapsed
     And the card's stops button is still in the same place on screen
 
+  @R4
+  Scenario: The card stays put when the next train has more stops
+    # Found in code review: keeping a timetable row in place scrolled the countdown away.
+    Given the screen is 390 by 844 pixels
+    And my commute is from "San Francisco" to "San Jose Diridon"
+    And I open the app
+    And I tap "Show 2 more stops"
+    And I tap "Show 2 earlier trains"
+    And train 104 is in the viewport below the header
+    And I note where the card is on screen
+    # The 7:30 express leaves. The 8:00 limited stops at one more station on the way.
+    When the time reaches 7:31am
+    Then the card shows Limited train 402
+    And there is a "Hide 3 stops" button
+    And the card is still in the same place on screen
+
   @R5
   Scenario: The button works from the keyboard and keeps focus through a redraw
     Given my commute is from "San Francisco" to "Mountain View"
     And I open the app
+    Then the card's stops button is at least 40 pixels tall
     When I move keyboard focus to "Show 1 more stop"
     And I press Enter
     Then the card's stops are expanded

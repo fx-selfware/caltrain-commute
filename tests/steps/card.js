@@ -46,7 +46,33 @@ Then("the card's {string} button is just under the departure", async ({ page }, 
 });
 
 Then("the card's stops are {word}", async ({ page }, state) => {
+  if (!["expanded", "collapsed"].includes(state)) throw new Error(`Say expanded or collapsed, not "${state}"`);
   await expect(stopsButton(page)).toHaveAttribute("aria-expanded", String(state === "expanded"));
+});
+
+Then("the card's stops button is at least {int} pixels tall", async ({ page }, px) => {
+  expect((await stopsButton(page).boundingBox()).height).toBeGreaterThanOrEqual(px);
+});
+
+// My stop is the row with a Stop or Skips tag; the other stops between the ends have smaller times.
+Then("the other stops are drawn smaller than my stop", async ({ page }) => {
+  const sizes = await card(page).locator(".itin li:not(.more-stops)").evaluateAll(lis => lis.slice(1, -1).map(li => ({
+    mine: !!li.querySelector(".tag"),
+    size: parseFloat(getComputedStyle(li.querySelector(".t")).fontSize),
+  })));
+  const mine = sizes.find(s => s.mine), others = sizes.filter(s => !s.mine);
+  expect(mine, "no row for my stop").toBeTruthy();
+  expect(others.length, "no other stops").toBeGreaterThan(0);
+  for (const other of others) expect(other.size).toBeLessThan(mine.size);
+});
+
+When("I note where the card is on screen", async ({ app, page }) => {
+  app.notedCard = (await card(page).boundingBox()).y;
+});
+
+Then("the card is still in the same place on screen", async ({ app, page }) => {
+  await page.clock.runFor(32);
+  expect(Math.abs((await card(page).boundingBox()).y - app.notedCard)).toBeLessThan(1);
 });
 
 Then("the card has no button for more stops", async ({ page }) => {
